@@ -55,6 +55,16 @@ function sendToGame(command, params = {}) {
     });
 }
 
+const eyeStyles = [
+    'angry_blue', 'angry_green', 'angry_red',
+    'blue', 'red', 'yellow',
+    'closed_feminine', 'closed_happy',
+    'cute_dark', 'cute_light',
+    'dead',
+    'human_blue', 'human_green', 'human_red', 'human',
+    'psycho_dark', 'psycho_light',
+];
+
 // --- Register tools
 server.registerTool(
     'create_body',
@@ -82,7 +92,7 @@ server.registerTool(
         description: 'Add a mirrored pair of arms to the monster. Requires create_body to have been called first.',
         inputSchema: z.object({
             color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Arm color, dark=brown'),
-            pose: z.string().describe('Arm pose/style variant, e.g. wave, straight, raised'),
+            pose: z.enum(['A', 'B', 'C', 'D', 'E']).describe('Arm shape variant'),
         }),
     },
     async ({ color, pose }) => {
@@ -101,7 +111,7 @@ server.registerTool(
         description: 'Add a mirrored pair of legs to the monster. Requires create_body to have been called first.',
         inputSchema: z.object({
             color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Leg color, dark=brown'),
-            pose: z.string().describe('Leg pose/style variant, e.g. standing, walking'),
+            pose: z.enum(['A', 'B', 'C']).describe('Leg shape variant'),
         }),
     },
     async ({ color, pose }) => {
@@ -117,15 +127,15 @@ server.registerTool(
 server.registerTool(
     'add_eyes',
     {
-        description: 'Add a mirrored pair of eyes to the monster. Requires create_body to have been called first.',
+        description: 'Add one or more eyes to the monster, evenly spaced. Requires create_body to have been called first.',
         inputSchema: z.object({
-            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Eye color, dark=brown'),
-            pose: z.string().describe('Eye expression/style variant, e.g. happy, angry, wide, sleepy'),
+            style: z.enum(eyeStyles).describe('Eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
+            count: z.number().int().min(1).max(6).default(2).describe('Number of eyes, e.g. 1 for a cyclops, 2 for normal, 3+ for something stranger'),
         }),
     },
-    async ({ color, pose }) => {
+    async ({ style, count }) => {
         try {
-            const reply = await sendToGame('add_eyes', { color, pose });
+            const reply = await sendToGame('add_eyes', { style, count });
             return { content: [{ type: 'text', text: reply.result }] };
         } catch (err) {
             return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
@@ -138,13 +148,12 @@ server.registerTool(
     {
         description: 'Add a mouth to the monster. Requires create_body to have been called first.',
         inputSchema: z.object({
-            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Mouth color, dark=brown'),
-            pose: z.string().describe('Mouth expression/style variant, e.g. smile, frown, fangs, roar'),
+            style: z.enum(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']).describe('Mouth style variant'),
         }),
     },
-    async ({ color, pose }) => {
+    async ({ style }) => {
         try {
-            const reply = await sendToGame('add_mouth', { color, pose });
+            const reply = await sendToGame('add_mouth', { style });
             return { content: [{ type: 'text', text: reply.result }] };
         } catch (err) {
             return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
@@ -155,31 +164,16 @@ server.registerTool(
 server.registerTool(
     'add_antennas',
     {
-        description: 'Add a mirrored pair of antennas to the monster. Requires create_body to have been called first.',
+        description: 'Add one or more antennas to the monster, evenly spaced. Requires create_body to have been called first.',
         inputSchema: z.object({
             color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Antenna color, dark=brown'),
-            pose: z.string().describe('Antenna style variant, e.g. straight, bent, curly'),
+            size: z.enum(['small', 'large']).describe('Antenna size'),
+            count: z.number().int().min(1).max(6).default(2).describe('Number of antennas'),
         }),
     },
-    async ({ color, pose }) => {
+    async ({ color, size, count }) => {
         try {
-            const reply = await sendToGame('add_antennas', { color, pose });
-            return { content: [{ type: 'text', text: reply.result }] };
-        } catch (err) {
-            return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
-        }
-    }
-);
-
-server.registerTool(
-    'get_monster_state',
-    {
-        description: 'Get a JSON description of every part currently on the monster.',
-        inputSchema: z.object({}),
-    },
-    async () => {
-        try {
-            const reply = await sendToGame('get_monster_state', {});
+            const reply = await sendToGame('add_antennas', { color, size, count });
             return { content: [{ type: 'text', text: reply.result }] };
         } catch (err) {
             return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
@@ -189,12 +183,27 @@ server.registerTool(
 
 const bodySpec = z.object({
     color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Body color, dark=brown'),
-    shape: z.enum(['A', 'B', 'C', 'D', 'E', 'F']).describe('Body shape variant: A=square, B=round, C=oval, D=squat oval, E=long body, F=long body with hair tufts'),
+    shape: z.enum(['A', 'B', 'C', 'D', 'E', 'F']).describe('Body shape variant'),
 });
 
-const partSpec = (label) => z.object({
+const armLegSpec = (label, shapes) => z.object({
     color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe(`${label} color, dark=brown`),
-    pose: z.string().describe(`${label} pose/style variant`),
+    pose: z.enum(shapes).describe(`${label} shape variant`),
+});
+
+const eyeSpec = z.object({
+    style: z.enum(eyeStyles).describe('Eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
+    count: z.number().int().min(1).max(6).default(2).describe('Number of eyes, e.g. 1 for a cyclops'),
+});
+
+const mouthSpec = z.object({
+    style: z.enum(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']).describe('Mouth style variant'),
+});
+
+const antennaSpec = z.object({
+    color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Antenna color, dark=brown'),
+    size: z.enum(['small', 'large']).describe('Antenna size'),
+    count: z.number().int().min(1).max(6).default(2).describe('Number of antennas'),
 });
 
 server.registerTool(
@@ -203,11 +212,11 @@ server.registerTool(
         description: 'Build a complete monster in one call from a full specification. Only body is required; any other part can be omitted.',
         inputSchema: z.object({
             body: bodySpec,
-            arms: partSpec('Arm').optional(),
-            legs: partSpec('Leg').optional(),
-            eyes: partSpec('Eye').optional(),
-            mouth: partSpec('Mouth').optional(),
-            antennas: partSpec('Antenna').optional(),
+            arms: armLegSpec('Arm', ['A', 'B', 'C', 'D', 'E']).optional(),
+            legs: armLegSpec('Leg', ['A', 'B', 'C']).optional(),
+            eyes: eyeSpec.optional(),
+            mouth: mouthSpec.optional(),
+            antennas: antennaSpec.optional(),
         }),
     },
     async (params) => {

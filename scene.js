@@ -8,16 +8,44 @@ class MonsterScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load every body variant
+        // Body
         for (const color of PARTS.body.colors) {
             for (const shape of PARTS.body.shapes) {
                 const key = `body_${color}${shape}`;
                 this.load.image(key, `assets/${key}.png`);
             }
         }
-        // TODO(instructor): extend preload for arms, legs, eyes,
-        // mouths, antennas following the same pattern, matching
-        // the filenames in the Kenney pack.
+        // Arms
+        for (const color of PARTS.arm.colors) {
+            for (const shape of PARTS.arm.shapes) {
+                const key = `arm_${color}${shape}`;
+                this.load.image(key, `assets/${key}.png`);
+            }
+        }
+        // Legs
+        for (const color of PARTS.leg.colors) {
+            for (const shape of PARTS.leg.shapes) {
+                const key = `leg_${color}${shape}`;
+                this.load.image(key, `assets/${key}.png`);
+            }
+        }
+        // Eyes (no color component)
+        for (const style of PARTS.eye.styles) {
+            const key = `eye_${style}`;
+            this.load.image(key, `assets/${key}.png`);
+        }
+        // Mouth (no underscore, no color)
+        for (const style of PARTS.mouth.styles) {
+            const key = `mouth${style}`;
+            this.load.image(key, `assets/${key}.png`);
+        }
+        // Antennas
+        for (const color of PARTS.antenna.colors) {
+            for (const size of PARTS.antenna.sizes) {
+                const key = `detail_${color}_antenna_${size}`;
+                this.load.image(key, `assets/${key}.png`);
+            }
+        }
     }
 
     create() {
@@ -113,37 +141,45 @@ class MonsterScene extends Phaser.Scene {
             }
             case 'add_eyes': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `eye_${params.color}${params.pose}`;
-                const off = PARTS.eye.offset;  // from the manifest
+                const key = `eye_${params.style}`;
+                const off = PARTS.eye.offset;
+                const spacing = PARTS.eye.spacing;
+                const count = params.count || 2;
 
-                const rightEye = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
-                const leftEye  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
-                    .setFlipX(true);
+                const eyes = [];
+                for (let i = 0; i < count; i++) {
+                    const x = CENTER_X + (i - (count - 1) / 2) * spacing;
+                    eyes.push(this.add.image(x, CENTER_Y + off.y, key));
+                }
 
-                this.monster.eyes = [leftEye, rightEye];
-                return `Added a mirrored pair of ${params.color} eyes.`;
+                this.monster.eyes = eyes;
+                return `Added ${count} style-${params.style} eye${count === 1 ? '' : 's'}.`;
             }
             case 'add_mouth': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `mouth_${params.color}${params.pose}`;
-                const off = PARTS.mouth.offset;  // from the manifest
+                const key = `mouth${params.style}`;
+                const off = PARTS.mouth.offset;
 
                 const mouth = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
 
                 this.monster.mouth = mouth;
-                return `Added a ${params.color} mouth.`;
+                return `Added a style-${params.style} mouth.`;
             }
             case 'add_antennas': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `antenna_${params.color}${params.pose}`;
-                const off = PARTS.antenna.offset;  // from the manifest
+                const key = `detail_${params.color}_antenna_${params.size}`;
+                const off = PARTS.antenna.offset;
+                const spacing = PARTS.antenna.spacing;
+                const count = params.count || 2;
 
-                const rightAntenna = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
-                const leftAntenna  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
-                    .setFlipX(true);
+                const antennas = [];
+                for (let i = 0; i < count; i++) {
+                    const x = CENTER_X + (i - (count - 1) / 2) * spacing;
+                    antennas.push(this.add.image(x, CENTER_Y + off.y, key));
+                }
 
-                this.monster.antennas = [leftAntenna, rightAntenna];
-                return `Added a mirrored pair of ${params.color} antennas.`;
+                this.monster.antennas = antennas;
+                return `Added ${count} ${params.color} ${params.size} antenna${count === 1 ? '' : 's'}.`;
             }
             case 'get_monster_state': {
                 const state = {};
