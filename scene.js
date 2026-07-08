@@ -87,13 +87,105 @@ class MonsterScene extends Phaser.Scene {
                 this.monster.body = this.add.image(CENTER_X, CENTER_Y, key);
                 return `Created a ${params.color} type-${params.shape} body.`;
             }
-            // case 'add_arms':    ...
-            // case 'add_legs':    ...
-            // case 'add_eyes':    ...
-            // case 'add_mouth':   ...
-            // case 'add_antennas': ...
-            // case 'get_monster_state': ...
-            // case 'build_monster': ...
+            case 'add_arms': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                const key = `arm_${params.color}${params.pose}`;
+                const off = PARTS.arm.offset;  // from the manifest
+
+                const rightArm = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+                const leftArm  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                    .setFlipX(true);
+
+                this.monster.arms = [leftArm, rightArm];
+                return `Added a mirrored pair of ${params.color} arms.`;
+            }
+            case 'add_legs': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                const key = `leg_${params.color}${params.pose}`;
+                const off = PARTS.leg.offset;  // from the manifest
+
+                const rightLeg = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+                const leftLeg  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                    .setFlipX(true);
+
+                this.monster.legs = [leftLeg, rightLeg];
+                return `Added a mirrored pair of ${params.color} legs.`;
+            }
+            case 'add_eyes': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                const key = `eye_${params.color}${params.pose}`;
+                const off = PARTS.eye.offset;  // from the manifest
+
+                const rightEye = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+                const leftEye  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                    .setFlipX(true);
+
+                this.monster.eyes = [leftEye, rightEye];
+                return `Added a mirrored pair of ${params.color} eyes.`;
+            }
+            case 'add_mouth': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                const key = `mouth_${params.color}${params.pose}`;
+                const off = PARTS.mouth.offset;  // from the manifest
+
+                const mouth = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+
+                this.monster.mouth = mouth;
+                return `Added a ${params.color} mouth.`;
+            }
+            case 'add_antennas': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                const key = `antenna_${params.color}${params.pose}`;
+                const off = PARTS.antenna.offset;  // from the manifest
+
+                const rightAntenna = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+                const leftAntenna  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                    .setFlipX(true);
+
+                this.monster.antennas = [leftAntenna, rightAntenna];
+                return `Added a mirrored pair of ${params.color} antennas.`;
+            }
+            case 'get_monster_state': {
+                const state = {};
+
+                if (this.monster.body) {
+                    state.body = this.monster.body.texture.key;
+                }
+                if (this.monster.mouth) {
+                    state.mouth = this.monster.mouth.texture.key;
+                }
+                for (const partName of ['arms', 'legs', 'eyes', 'antennas']) {
+                    if (this.monster[partName]) {
+                        state[partName] = this.monster[partName].map(p => p.texture.key);
+                    }
+                }
+
+                return JSON.stringify(state);
+            }
+            case 'build_monster': {
+                if (!params.body) {
+                    return 'Error: build_monster requires a body specification.';
+                }
+
+                const commandMap = {
+                    arms: 'add_arms',
+                    legs: 'add_legs',
+                    eyes: 'add_eyes',
+                    mouth: 'add_mouth',
+                    antennas: 'add_antennas'
+                };
+
+                // create_body clears any existing monster, same as calling it directly
+                const messages = [this.executeCommand('create_body', params.body)];
+
+                for (const partName of ['arms', 'legs', 'eyes', 'mouth', 'antennas']) {
+                    if (params[partName]) {
+                        messages.push(this.executeCommand(commandMap[partName], params[partName]));
+                    }
+                }
+
+                return `Built monster:\n${messages.join('\n')}`;
+            }
 
             default:
                 return `Unknown command: ${command}`;
