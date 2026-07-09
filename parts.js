@@ -41,7 +41,7 @@ const PARTS = {
         colors: ['blue', 'green', 'red', 'yellow', 'dark'],
         sizes: ['small', 'large'],
         // detail_{color}_antenna_{small|large}
-        offset: { x: 0,   y: -95 }, spacing: 50
+        offset: { x: 0,   y: -145 }, spacing: 50
     },
 };
 const CENTER_X = 400;
