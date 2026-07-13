@@ -79,7 +79,6 @@ class MonsterScene extends Phaser.Scene {
     }
 
     update() {
-        // Handle tool requests coming from the MCP server
         while (this.commandQueue.length > 0) {
             const msg = this.commandQueue.shift();
             let result;
@@ -88,7 +87,17 @@ class MonsterScene extends Phaser.Scene {
             } catch (err) {
                 result = `Error executing ${msg.command}: ${err.message}`;
             }
-            this.ws.send(JSON.stringify({ id: msg.id, result }));
+
+            if (result instanceof Promise) {
+                result
+                    .then((res) => this.ws.send(JSON.stringify({ id: msg.id, result: res })))
+                    .catch((err) => this.ws.send(JSON.stringify({
+                        id: msg.id,
+                        result: `Error executing ${msg.command}: ${err.message}`,
+                    })));
+            } else {
+                this.ws.send(JSON.stringify({ id: msg.id, result }));
+            }
         }
     }
 
@@ -99,10 +108,24 @@ class MonsterScene extends Phaser.Scene {
         this.monster = {};
     }
 
-    // ============================================================
-    // TODO: implement this. Each case applies one command and
-    // returns a string describing what happened (or an error).
-    // ============================================================
+    applyModifiers(obj, params) {
+        if (!obj || !params) return;
+        if (params.tint !== undefined) {
+            obj.setTint(parseInt(params.tint.slice(1), 16));
+        }
+        if (params.scaleX !== undefined || params.scaleY !== undefined) {
+            obj.setScale(
+                params.scaleX !== undefined ? params.scaleX : obj.scaleX,
+                params.scaleY !== undefined ? params.scaleY : obj.scaleY
+            );
+        } else if (params.scale !== undefined) {
+            obj.setScale(params.scale);
+        }
+        if (params.angle !== undefined) {
+            obj.setAngle(params.angle);
+        }
+    }
+
     executeCommand(command, params) {
         switch (command) {
             case 'clear_monster':
@@ -110,19 +133,30 @@ class MonsterScene extends Phaser.Scene {
                 return 'Monster cleared.';
 
             case 'create_body': {
-                this.clearMonster();  // provided in starter code
+                this.clearMonster();  
                 const key = `body_${params.color}${params.shape}`;
-                this.monster.body = this.add.image(CENTER_X, CENTER_Y, key);
+                const x = CENTER_X + (params.dx || 0);
+                const y = CENTER_Y + (params.dy || 0);
+
+                const body = this.add.image(x, y, key);
+                this.applyModifiers(body, params);
+
+                this.monster.body = body;
                 return `Created a ${params.color} type-${params.shape} body.`;
             }
             case 'add_arms': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const key = `arm_${params.color}${params.pose}`;
-                const off = PARTS.arm.offset;  // from the manifest
+                const off = PARTS.arm.offset; 
+                const dx = params.dx || 0;
+                const dy = params.dy || 0;
 
-                const rightArm = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
-                const leftArm  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                const rightArm = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
+                const leftArm  = this.add.image(CENTER_X - off.x - dx, CENTER_Y + off.y + dy, key)
                     .setFlipX(true);
+
+                this.applyModifiers(rightArm, params);
+                this.applyModifiers(leftArm, params);
 
                 this.monster.arms = [leftArm, rightArm];
                 return `Added a mirrored pair of ${params.color} arms.`;
@@ -130,11 +164,16 @@ class MonsterScene extends Phaser.Scene {
             case 'add_legs': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const key = `leg_${params.color}${params.pose}`;
-                const off = PARTS.leg.offset;  // from the manifest
+                const off = PARTS.leg.offset;  
+                const dx = params.dx || 0;
+                const dy = params.dy || 0;
 
-                const rightLeg = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
-                const leftLeg  = this.add.image(CENTER_X - off.x, CENTER_Y + off.y, key)
+                const rightLeg = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
+                const leftLeg  = this.add.image(CENTER_X - off.x - dx, CENTER_Y + off.y + dy, key)
                     .setFlipX(true);
+
+                this.applyModifiers(rightLeg, params);
+                this.applyModifiers(leftLeg, params);
 
                 this.monster.legs = [leftLeg, rightLeg];
                 return `Added a mirrored pair of ${params.color} legs.`;
@@ -145,11 +184,15 @@ class MonsterScene extends Phaser.Scene {
                 const off = PARTS.eye.offset;
                 const spacing = PARTS.eye.spacing;
                 const count = params.count || 2;
+                const dx = params.dx || 0;
+                const dy = params.dy || 0;
 
                 const eyes = [];
                 for (let i = 0; i < count; i++) {
-                    const x = CENTER_X + (i - (count - 1) / 2) * spacing;
-                    eyes.push(this.add.image(x, CENTER_Y + off.y, key));
+                    const x = CENTER_X + (i - (count - 1) / 2) * spacing + dx;
+                    const eye = this.add.image(x, CENTER_Y + off.y + dy, key);
+                    this.applyModifiers(eye, params);
+                    eyes.push(eye);
                 }
 
                 this.monster.eyes = eyes;
@@ -159,8 +202,11 @@ class MonsterScene extends Phaser.Scene {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const key = `mouth${params.style}`;
                 const off = PARTS.mouth.offset;
+                const dx = params.dx || 0;
+                const dy = params.dy || 0;
 
-                const mouth = this.add.image(CENTER_X + off.x, CENTER_Y + off.y, key);
+                const mouth = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
+                this.applyModifiers(mouth, params);
 
                 this.monster.mouth = mouth;
                 return `Added a style-${params.style} mouth.`;
@@ -171,11 +217,15 @@ class MonsterScene extends Phaser.Scene {
                 const off = PARTS.antenna.offset;
                 const spacing = PARTS.antenna.spacing;
                 const count = params.count || 2;
+                const dx = params.dx || 0;
+                const dy = params.dy || 0;
 
                 const antennas = [];
                 for (let i = 0; i < count; i++) {
-                    const x = CENTER_X + (i - (count - 1) / 2) * spacing;
-                    antennas.push(this.add.image(x, CENTER_Y + off.y, key));
+                    const x = CENTER_X + (i - (count - 1) / 2) * spacing + dx;
+                    const antenna = this.add.image(x, CENTER_Y + off.y + dy, key);
+                    this.applyModifiers(antenna, params);
+                    antennas.push(antenna);
                 }
 
                 this.monster.antennas = antennas;
@@ -221,6 +271,14 @@ class MonsterScene extends Phaser.Scene {
                 }
 
                 return `Built monster:\n${messages.join('\n')}`;
+            }
+
+            case 'take_screenshot': {
+                return new Promise((resolve) => {
+                    this.game.renderer.snapshot((image) => {
+                        resolve(image.src.split(',')[1]);
+                    });
+                });
             }
 
             default:
