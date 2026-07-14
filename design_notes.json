@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-07-14T19:08:26.496Z",
+    "lesson": "Design style 'Lopsided Static': (1) break mirror symmetry on paired parts using dx/dy/angle/scale so sides are never even; (2) give exactly one part (eyes or mouth) an oversized scale 1.4-2x as the focal point while others stay modest; (3) pair body tint and limb/detail tint from opposite sides of the color wheel for instant silhouette legibility; (4) tilt the whole body 5-15 degrees off vertical so the monster looks frozen off-balance."
+  },
+  {
+    "timestamp": "2026-07-14T19:13:52.379Z",
+    "lesson": "When placing two overlapping eyes of very different scale (e.g. 0.8 and 1.8) close together (dx 25 vs 35), the smaller eye gets fully occluded by the larger one's sprite bounds - defeats the intended asymmetry since only one eye ends up visible. Need dx separation roughly proportional to the larger eye's scaled radius, or offset the smaller eye further outward/downward, so both remain visible."
+  },
+  {
+    "timestamp": "2026-07-14T19:13:52.381Z",
+    "lesson": "A body angle tilt (5-15deg) is nearly invisible on round/oval body shapes (B, C, D) since they're rotationally symmetric-looking; the 'frozen off-balance' effect reads much better on angular or asymmetric body shapes (A, E, F) or must be reinforced by tilting an attached part (mouth/eyes) in the same direction to sell the lean."
+  },
+  {
+    "timestamp": "2026-07-14T19:18:52.311Z",
+    "lesson": "add_arms/add_legs/add_antennas(count>=2) apply one angle/dx/dy/scale to the WHOLE mirrored pair, so both sides move identically (mirrored) - this produces a symmetric flex/V pose, not true left-right asymmetry, no matter how extreme the angle. For 'Lopsided Static' asymmetry, don't rely on arms/legs for lopsidedness; instead concentrate asymmetry budget on eyes (call add_eyes multiple times with different dx/dy/scale/style per call) and use antennas count:1 (a single antenna instantly reads as off-balance/asymmetric) or mouth dx offset."
+  },
+  {
+    "timestamp": "2026-07-14T19:18:52.312Z",
+    "lesson": "Body shape E (long body) still reads as a fairly symmetric capsule/pill silhouette - a 10-12deg body angle is only faintly visible at the top edge. Shapes with inherent asymmetry (F - long body with hair tufts) or reinforcing the tilt with an off-axis single antenna/mouth in the same rotational direction sells the 'frozen off-balance' lean much more clearly than body angle alone."
+  },
+  {
+    "timestamp": "2026-07-14T19:19:14.934Z",
+    "lesson": "Body shape F (long body with hair tufts) sells the 'frozen off-balance' tilt much better than plain capsule shapes B/C/D/E - the tufts visibly lean with the angle, giving a clear read of imbalance. Prefer shape F (or A) for this style over rounded/oval shapes."
+  },
+  {
+    "timestamp": "2026-07-14T19:19:14.936Z",
+    "lesson": "Combining: one small secondary eye (scale ~0.6-0.7, subtle style like 'dead') + one oversized dominant eye (scale ~1.6-1.8, bold style like angry_blue) with dx separation proportional to the big eye's radius (~45-50px apart), plus a single antenna (count:1) and a mouth nudged (dx 15-20) in the same direction as the dominant eye, reliably produces strong, legible 'Lopsided Static' asymmetry without needing arm/leg asymmetry."
+  },
+  {
+    "timestamp": "2026-07-14T19:33:28.679Z",
+    "lesson": "User feedback (3.5/5) on part placement defaults: legs should be positioned lower on the body (increase default dy or use larger positive dy offset), arms should sit slightly lower and closer to center (positive dy and negative dx-widening, i.e. reduce dx or use small negative dx to pull them in), and the oversized 'dominant eye' focal scale should be dialed back from ~1.6-1.8 to something more like 1.3-1.5 - the largest tested scale read as too big/dominant rather than striking."
+  }
+]

@@ -4,16 +4,17 @@ import { WebSocketServer } from 'ws';
 import * as z from 'zod';
 import fs from 'fs';
 
+const NOTES_PATH = './design_notes.json';
+
 // Create the server
 const server = new McpServer({
     name: 'phaser-monster-tools',
     version: '1.0.0',
 });
 
-// --- WebSocket bridge to the Phaser game ---
 const wss = new WebSocketServer({ port: 8081 });
-let gameSocket = null;          // the currently connected game, if any
-const pending = new Map();      // message id -> resolve function
+let gameSocket = null;
+const pending = new Map();
 let nextId = 1;
 
 wss.on('connection', (ws) => {
@@ -22,7 +23,6 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (data) => {
         const msg = JSON.parse(data.toString());
-        // Find the promise waiting for this reply, and resolve it
         const resolve = pending.get(msg.id);
         if (resolve) {
             resolve(msg);
@@ -69,17 +69,17 @@ const eyeStyles = [
 const visualModifiers = {
     tint: z.string().optional()
         .describe('Hex color to tint this part, e.g. "#8833ff". Recolors the sprite while keeping its shading/shape.'),
-    scale: z.number().optional()
+    scale: z.coerce.number().optional()
         .describe('Uniform scale factor, e.g. 1.5 = 50% bigger, 0.6 = smaller. Overridden per-axis by scaleX/scaleY if given.'),
-    scaleX: z.number().optional()
+    scaleX: z.coerce.number().optional()
         .describe('Horizontal scale factor. Combine with scaleY for non-uniform stretching, e.g. a thin part.'),
-    scaleY: z.number().optional()
+    scaleY: z.coerce.number().optional()
         .describe('Vertical scale factor. Combine with scaleX for non-uniform stretching, e.g. scaleY: 1.6 for a long/tall part.'),
-    angle: z.number().optional()
+    angle: z.coerce.number().optional()
         .describe('Rotation in degrees applied to this part (positive = clockwise).'),
-    dx: z.number().optional()
+    dx: z.coerce.number().optional()
         .describe('Horizontal pixel nudge from this part\'s default attachment point. For mirrored parts (arms/legs), positive dx widens the pair (each side moves further out).'),
-    dy: z.number().optional()
+    dy: z.coerce.number().optional()
         .describe('Vertical pixel nudge from this part\'s default attachment point (positive = down).'),
 };
 
@@ -280,14 +280,15 @@ server.registerTool(
     }
 );
 
-const NOTES_FILE = 'design_notes.json';
-
 function loadNotes() {
-    if (!fs.existsSync(NOTES_FILE)) {
-        return [];
-    }
-    const text = fs.readFileSync(NOTES_FILE, 'utf8');
-    return JSON.parse(text);
+  try {
+    const data = fs.readFileSync(NOTES_PATH, 'utf-8');
+    if (!data.trim()) return [];
+    return JSON.parse(data);
+  } catch (e) {
+    if (e.code === 'ENOENT') return [];
+    throw e;
+  }
 }
 
 server.registerTool(
@@ -307,7 +308,7 @@ server.registerTool(
             timestamp: new Date().toISOString(),
             lesson: lesson,
         });
-        fs.writeFileSync(NOTES_FILE, JSON.stringify(notes, null, 2));
+        fs.writeFileSync(NOTES_PATH, JSON.stringify(notes, null, 2));
 
         console.error(`[memory] stored lesson #${notes.length}`);
         return {
