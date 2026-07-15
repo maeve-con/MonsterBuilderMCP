@@ -109,11 +109,29 @@ server.registerTool(
 server.registerTool(
     'add_arms',
     {
-        description: 'Add a mirrored pair of arms to the monster. Requires create_body to have been called first. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size), angle (rotation), dx (widens/narrows the pair), dy (shifts both up/down).',
+        description: 'Add arms to the monster. Requires create_body to have been called first. ' +
+            'By default adds a mirrored pair using color/pose/tint/scale/angle/dx/dy. ' +
+            'Set mirror:false with only the Right* fields to add a single asymmetric arm. ' +
+            'Use the *Left/*Right override fields to give each arm a different color, pose, size, angle, or position.',
         inputSchema: withModifiers(z.object({
-            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Arm color, dark=brown'),
-            pose: z.enum(['A', 'B', 'C', 'D', 'E']).describe('Arm shape variant'),
+            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Default arm color, dark=brown'),
+            pose: z.enum(['A', 'B', 'C', 'D', 'E']).describe('Default arm shape variant'),
+            mirror: z.boolean().default(true)
+                .describe('If false, only the right arm is placed (use for a single asymmetric limb). Default true adds both sides.'),
+            colorLeft: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override left arm color'),
+            colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override right arm color'),
+            poseLeft: z.enum(['A', 'B', 'C', 'D', 'E']).optional().describe('Override left arm pose'),
+            poseRight: z.enum(['A', 'B', 'C', 'D', 'E']).optional().describe('Override right arm pose'),
+            tintLeft: z.string().optional().describe('Override left arm tint'),
+            tintRight: z.string().optional().describe('Override right arm tint'),
+            scaleLeft: z.coerce.number().optional().describe('Override left arm scale'),
+            scaleRight: z.coerce.number().optional().describe('Override right arm scale'),
+            angleLeft: z.coerce.number().optional().describe('Override left arm rotation in degrees'),
+            angleRight: z.coerce.number().optional().describe('Override right arm rotation in degrees'),
+            dxLeft: z.coerce.number().optional().describe('Override left arm horizontal offset from its own anchor'),
+            dxRight: z.coerce.number().optional().describe('Override right arm horizontal offset from its own anchor'),
+            dyLeft: z.coerce.number().optional().describe('Override left arm vertical offset from its own anchor'),
+            dyRight: z.coerce.number().optional().describe('Override right arm vertical offset from its own anchor'),
         })),
     },
     async (params) => {
@@ -129,11 +147,30 @@ server.registerTool(
 server.registerTool(
     'add_legs',
     {
-        description: 'Add a mirrored pair of legs to the monster. Requires create_body to have been called first. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size), angle (rotation), dx (widens/narrows the pair), dy (shifts both up/down).',
+        description: 'Add legs to the monster. Requires create_body to have been called first. ' +
+            'By default adds a mirrored pair. Set mirror:false with only the Right* fields for a single asymmetric leg. ' +
+            'Use stance for a quick low/high leg placement instead of guessing dy by hand.',
         inputSchema: withModifiers(z.object({
-            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Leg color, dark=brown'),
-            pose: z.enum(['A', 'B', 'C']).describe('Leg shape variant'),
+            color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Default leg color, dark=brown'),
+            pose: z.enum(['A', 'B', 'C']).describe('Default leg shape variant'),
+            stance: z.enum(['low', 'normal', 'high']).default('normal')
+                .describe('Quick vertical placement preset: low=squat/creature-like, high=long-legged/humanoid. Stacks with dy for finer control.'),
+            mirror: z.boolean().default(true)
+                .describe('If false, only the right leg is placed. Default true adds both sides.'),
+            colorLeft: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override left leg color'),
+            colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override right leg color'),
+            poseLeft: z.enum(['A', 'B', 'C']).optional().describe('Override left leg pose'),
+            poseRight: z.enum(['A', 'B', 'C']).optional().describe('Override right leg pose'),
+            tintLeft: z.string().optional().describe('Override left leg tint'),
+            tintRight: z.string().optional().describe('Override right leg tint'),
+            scaleLeft: z.coerce.number().optional().describe('Override left leg scale'),
+            scaleRight: z.coerce.number().optional().describe('Override right leg scale'),
+            angleLeft: z.coerce.number().optional().describe('Override left leg rotation in degrees'),
+            angleRight: z.coerce.number().optional().describe('Override right leg rotation in degrees'),
+            dxLeft: z.coerce.number().optional().describe('Override left leg horizontal offset from its own anchor'),
+            dxRight: z.coerce.number().optional().describe('Override right leg horizontal offset from its own anchor'),
+            dyLeft: z.coerce.number().optional().describe('Override left leg vertical offset from its own anchor'),
+            dyRight: z.coerce.number().optional().describe('Override right leg vertical offset from its own anchor'),
         })),
     },
     async (params) => {
@@ -146,14 +183,28 @@ server.registerTool(
     }
 );
 
+const eyePositionOverride = z.object({
+    style: z.enum(eyeStyles).optional(),
+    tint: z.string().optional(),
+    scale: z.coerce.number().optional(),
+    angle: z.coerce.number().optional(),
+    dx: z.coerce.number().optional(),
+    dy: z.coerce.number().optional(),
+});
+
 server.registerTool(
     'add_eyes',
     {
-        description: 'Add one or more eyes to the monster, evenly spaced. Requires create_body to have been called first. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size, e.g. one huge eye), angle (rotation), dx/dy (shifts the whole eye row, e.g. off-center placement).',
+        description: 'Add one or more eyes to the monster, evenly spaced by default. Requires create_body to have been called first. ' +
+            'Use positions to override individual eyes (different style/scale/tint/angle/offset per eye, indexed left to right). ' +
+            'Use dominant:true to make the first eye a focal feature auto-scaled to 1.4x instead of guessing scale by hand.',
         inputSchema: withModifiers(z.object({
-            style: z.enum(eyeStyles).describe('Eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
+            style: z.enum(eyeStyles).describe('Default eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
             count: z.number().int().min(1).max(6).default(2).describe('Number of eyes, e.g. 1 for a cyclops, 2 for normal, 3+ for something stranger'),
+            dominant: z.boolean().default(false)
+                .describe('If true, eye index 0 is auto-scaled to 1.4x as a focal feature. Overridden by positions[0].scale if given.'),
+            positions: z.array(eyePositionOverride).optional()
+                .describe('Per-eye overrides, indexed left-to-right, e.g. [{}, {scale:1.6, style:"dead"}] for one huge dead eye among normal ones.'),
         })),
     },
     async (params) => {
@@ -170,9 +221,11 @@ server.registerTool(
     'add_mouth',
     {
         description: 'Add a mouth to the monster. Requires create_body to have been called first. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size), angle (rotation), dx/dy (positional offset).',
+            'Set tiltWithBody:true to automatically inherit the body\'s current angle instead of matching degrees by hand.',
         inputSchema: withModifiers(z.object({
             style: z.enum(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']).describe('Mouth style variant'),
+            tiltWithBody: z.boolean().default(false)
+                .describe('If true, mouth angle = body angle + any explicit angle given (as an offset).'),
         })),
     },
     async (params) => {
@@ -211,18 +264,57 @@ const bodySpec = withModifiers(z.object({
     shape: z.enum(['A', 'B', 'C', 'D', 'E', 'F']).describe('Body shape variant'),
 }));
 
-const armLegSpec = (label, shapes) => withModifiers(z.object({
-    color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe(`${label} color, dark=brown`),
-    pose: z.enum(shapes).describe(`${label} shape variant`),
+const armSpec = withModifiers(z.object({
+    color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Default arm color, dark=brown'),
+    pose: z.enum(['A', 'B', 'C', 'D', 'E']).describe('Default arm shape variant'),
+    mirror: z.boolean().default(true).describe('If false, only the right arm is placed.'),
+    colorLeft: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
+    colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
+    poseLeft: z.enum(['A', 'B', 'C', 'D', 'E']).optional(),
+    poseRight: z.enum(['A', 'B', 'C', 'D', 'E']).optional(),
+    tintLeft: z.string().optional(),
+    tintRight: z.string().optional(),
+    scaleLeft: z.coerce.number().optional(),
+    scaleRight: z.coerce.number().optional(),
+    angleLeft: z.coerce.number().optional(),
+    angleRight: z.coerce.number().optional(),
+    dxLeft: z.coerce.number().optional(),
+    dxRight: z.coerce.number().optional(),
+    dyLeft: z.coerce.number().optional(),
+    dyRight: z.coerce.number().optional(),
+}));
+
+const legSpec = withModifiers(z.object({
+    color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Default leg color, dark=brown'),
+    pose: z.enum(['A', 'B', 'C']).describe('Default leg shape variant'),
+    stance: z.enum(['low', 'normal', 'high']).default('normal'),
+    mirror: z.boolean().default(true).describe('If false, only the right leg is placed.'),
+    colorLeft: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
+    colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
+    poseLeft: z.enum(['A', 'B', 'C']).optional(),
+    poseRight: z.enum(['A', 'B', 'C']).optional(),
+    tintLeft: z.string().optional(),
+    tintRight: z.string().optional(),
+    scaleLeft: z.coerce.number().optional(),
+    scaleRight: z.coerce.number().optional(),
+    angleLeft: z.coerce.number().optional(),
+    angleRight: z.coerce.number().optional(),
+    dxLeft: z.coerce.number().optional(),
+    dxRight: z.coerce.number().optional(),
+    dyLeft: z.coerce.number().optional(),
+    dyRight: z.coerce.number().optional(),
 }));
 
 const eyeSpec = withModifiers(z.object({
-    style: z.enum(eyeStyles).describe('Eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
+    style: z.enum(eyeStyles).describe('Default eye style, some include a color (e.g. angry_blue), others do not (e.g. dead, human)'),
     count: z.number().int().min(1).max(6).default(2).describe('Number of eyes, e.g. 1 for a cyclops'),
+    dominant: z.boolean().default(false),
+    positions: z.array(eyePositionOverride).optional(),
 }));
 
 const mouthSpec = withModifiers(z.object({
     style: z.enum(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']).describe('Mouth style variant'),
+    tiltWithBody: z.boolean().default(false),
 }));
 
 const antennaSpec = withModifiers(z.object({
@@ -235,11 +327,12 @@ server.registerTool(
     'build_monster',
     {
         description: 'Build a complete monster in one call from a full specification. Only body is required; any other part can be omitted. ' +
-            'Each part (body, arms, legs, eyes, mouth, antennas) accepts its own optional visual modifiers: tint, scale/scaleX/scaleY, angle, dx/dy.',
+            'Each part (body, arms, legs, eyes, mouth, antennas) accepts its own optional visual modifiers, and arms/legs/eyes support the same ' +
+            'asymmetry/positions/stance overrides as their standalone tools.',
         inputSchema: z.object({
             body: bodySpec,
-            arms: armLegSpec('Arm', ['A', 'B', 'C', 'D', 'E']).optional(),
-            legs: armLegSpec('Leg', ['A', 'B', 'C']).optional(),
+            arms: armSpec.optional(),
+            legs: legSpec.optional(),
             eyes: eyeSpec.optional(),
             mouth: mouthSpec.optional(),
             antennas: antennaSpec.optional(),
@@ -281,14 +374,14 @@ server.registerTool(
 );
 
 function loadNotes() {
-  try {
-    const data = fs.readFileSync(NOTES_PATH, 'utf-8');
-    if (!data.trim()) return [];
-    return JSON.parse(data);
-  } catch (e) {
-    if (e.code === 'ENOENT') return [];
-    throw e;
-  }
+    try {
+        const data = fs.readFileSync(NOTES_PATH, 'utf-8');
+        if (!data.trim()) return [];
+        return JSON.parse(data);
+    } catch (e) {
+        if (e.code === 'ENOENT') return [];
+        throw e;
+    }
 }
 
 server.registerTool(

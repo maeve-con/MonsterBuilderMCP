@@ -1,3 +1,5 @@
+const STANCE_DY = { low: 25, normal: 0, high: -20 };
+
 class MonsterScene extends Phaser.Scene {
     constructor() {
         super('MonsterScene');
@@ -133,7 +135,7 @@ class MonsterScene extends Phaser.Scene {
                 return 'Monster cleared.';
 
             case 'create_body': {
-                this.clearMonster();  
+                this.clearMonster();
                 const key = `body_${params.color}${params.shape}`;
                 const x = CENTER_X + (params.dx || 0);
                 const y = CENTER_Y + (params.dy || 0);
@@ -144,60 +146,127 @@ class MonsterScene extends Phaser.Scene {
                 this.monster.body = body;
                 return `Created a ${params.color} type-${params.shape} body.`;
             }
+
             case 'add_arms': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `arm_${params.color}${params.pose}`;
-                const off = PARTS.arm.offset; 
-                const dx = params.dx || 0;
-                const dy = params.dy || 0;
+                const off = PARTS.arm.offset;
 
-                const rightArm = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
-                const leftArm  = this.add.image(CENTER_X - off.x - dx, CENTER_Y + off.y + dy, key)
-                    .setFlipX(true);
+                const rightP = {
+                    color: params.colorRight || params.color,
+                    pose: params.poseRight || params.pose,
+                    tint: params.tintRight || params.tint,
+                    scale: params.scaleRight !== undefined ? params.scaleRight : params.scale,
+                    scaleX: params.scaleX, scaleY: params.scaleY,
+                    angle: params.angleRight !== undefined ? params.angleRight : params.angle,
+                    dx: params.dxRight || 0,
+                    dy: params.dyRight || 0,
+                };
+                const rightKey = `arm_${rightP.color}${rightP.pose}`;
+                const rightArm = this.add.image(CENTER_X + off.x + rightP.dx, CENTER_Y + off.y + rightP.dy, rightKey);
+                this.applyModifiers(rightArm, rightP);
 
-                this.applyModifiers(rightArm, params);
-                this.applyModifiers(leftArm, params);
+                let leftArm = null;
+                if (params.mirror !== false) {
+                    const leftP = {
+                        color: params.colorLeft || params.color,
+                        pose: params.poseLeft || params.pose,
+                        tint: params.tintLeft || params.tint,
+                        scale: params.scaleLeft !== undefined ? params.scaleLeft : params.scale,
+                        scaleX: params.scaleX, scaleY: params.scaleY,
+                        angle: params.angleLeft !== undefined ? params.angleLeft : params.angle,
+                        dx: params.dxLeft || 0,
+                        dy: params.dyLeft || 0,
+                    };
+                    const leftKey = `arm_${leftP.color}${leftP.pose}`;
+                    leftArm = this.add.image(CENTER_X - off.x + leftP.dx, CENTER_Y + off.y + leftP.dy, leftKey)
+                        .setFlipX(true);
+                    this.applyModifiers(leftArm, leftP);
+                }
 
-                this.monster.arms = [leftArm, rightArm];
-                return `Added a mirrored pair of ${params.color} arms.`;
+                this.monster.arms = leftArm ? [leftArm, rightArm] : [rightArm];
+                return leftArm
+                    ? `Added arms: right=${rightP.color}${rightP.pose}, left=${params.colorLeft || params.color}${params.poseLeft || params.pose}.`
+                    : `Added a single right arm: ${rightP.color}${rightP.pose} (mirror off).`;
             }
+
             case 'add_legs': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `leg_${params.color}${params.pose}`;
-                const off = PARTS.leg.offset;  
-                const dx = params.dx || 0;
-                const dy = params.dy || 0;
+                const off = PARTS.leg.offset;
+                const stanceDy = STANCE_DY[params.stance || 'normal'];
 
-                const rightLeg = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
-                const leftLeg  = this.add.image(CENTER_X - off.x - dx, CENTER_Y + off.y + dy, key)
-                    .setFlipX(true);
+                const rightP = {
+                    color: params.colorRight || params.color,
+                    pose: params.poseRight || params.pose,
+                    tint: params.tintRight || params.tint,
+                    scale: params.scaleRight !== undefined ? params.scaleRight : params.scale,
+                    scaleX: params.scaleX, scaleY: params.scaleY,
+                    angle: params.angleRight !== undefined ? params.angleRight : params.angle,
+                    dx: params.dxRight || 0,
+                    dy: (params.dyRight || 0) + stanceDy,
+                };
+                const rightKey = `leg_${rightP.color}${rightP.pose}`;
+                const rightLeg = this.add.image(CENTER_X + off.x + rightP.dx, CENTER_Y + off.y + rightP.dy, rightKey);
+                this.applyModifiers(rightLeg, rightP);
 
-                this.applyModifiers(rightLeg, params);
-                this.applyModifiers(leftLeg, params);
+                let leftLeg = null;
+                if (params.mirror !== false) {
+                    const leftP = {
+                        color: params.colorLeft || params.color,
+                        pose: params.poseLeft || params.pose,
+                        tint: params.tintLeft || params.tint,
+                        scale: params.scaleLeft !== undefined ? params.scaleLeft : params.scale,
+                        scaleX: params.scaleX, scaleY: params.scaleY,
+                        angle: params.angleLeft !== undefined ? params.angleLeft : params.angle,
+                        dx: params.dxLeft || 0,
+                        dy: (params.dyLeft || 0) + stanceDy,
+                    };
+                    const leftKey = `leg_${leftP.color}${leftP.pose}`;
+                    leftLeg = this.add.image(CENTER_X - off.x + leftP.dx, CENTER_Y + off.y + leftP.dy, leftKey)
+                        .setFlipX(true);
+                    this.applyModifiers(leftLeg, leftP);
+                }
 
-                this.monster.legs = [leftLeg, rightLeg];
-                return `Added a mirrored pair of ${params.color} legs.`;
+                this.monster.legs = leftLeg ? [leftLeg, rightLeg] : [rightLeg];
+                return leftLeg
+                    ? `Added legs: right=${rightP.color}${rightP.pose}, stance=${params.stance || 'normal'}.`
+                    : `Added a single right leg: ${rightP.color}${rightP.pose} (mirror off).`;
             }
+
             case 'add_eyes': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
-                const key = `eye_${params.style}`;
                 const off = PARTS.eye.offset;
                 const spacing = PARTS.eye.spacing;
                 const count = params.count || 2;
-                const dx = params.dx || 0;
-                const dy = params.dy || 0;
+                const baseDx = params.dx || 0;
+                const baseDy = params.dy || 0;
 
                 const eyes = [];
                 for (let i = 0; i < count; i++) {
-                    const x = CENTER_X + (i - (count - 1) / 2) * spacing + dx;
-                    const eye = this.add.image(x, CENTER_Y + off.y + dy, key);
-                    this.applyModifiers(eye, params);
+                    const pos = (params.positions && params.positions[i]) || {};
+                    const style = pos.style || params.style;
+                    const key = `eye_${style}`;
+                    const x = CENTER_X + (i - (count - 1) / 2) * spacing + (pos.dx !== undefined ? pos.dx : baseDx);
+                    const y = CENTER_Y + off.y + (pos.dy !== undefined ? pos.dy : baseDy);
+
+                    let scale = pos.scale !== undefined ? pos.scale : params.scale;
+                    if (params.dominant && i === 0 && scale === undefined) scale = 1.4;
+
+                    const merged = {
+                        tint: pos.tint || params.tint,
+                        scale,
+                        scaleX: params.scaleX, scaleY: params.scaleY,
+                        angle: pos.angle !== undefined ? pos.angle : params.angle,
+                    };
+
+                    const eye = this.add.image(x, y, key);
+                    this.applyModifiers(eye, merged);
                     eyes.push(eye);
                 }
 
                 this.monster.eyes = eyes;
-                return `Added ${count} style-${params.style} eye${count === 1 ? '' : 's'}.`;
+                return `Added ${count} eye${count === 1 ? '' : 's'}${params.positions ? ' with per-eye overrides' : ''}.`;
             }
+
             case 'add_mouth': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const key = `mouth${params.style}`;
@@ -206,11 +275,17 @@ class MonsterScene extends Phaser.Scene {
                 const dy = params.dy || 0;
 
                 const mouth = this.add.image(CENTER_X + off.x + dx, CENTER_Y + off.y + dy, key);
-                this.applyModifiers(mouth, params);
+
+                const mergedParams = { ...params };
+                if (params.tiltWithBody && this.monster.body) {
+                    mergedParams.angle = this.monster.body.angle + (params.angle || 0);
+                }
+                this.applyModifiers(mouth, mergedParams);
 
                 this.monster.mouth = mouth;
-                return `Added a style-${params.style} mouth.`;
+                return `Added a style-${params.style} mouth${params.tiltWithBody ? ' (tilted with body)' : ''}.`;
             }
+
             case 'add_antennas': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const key = `detail_${params.color}_antenna_${params.size}`;
@@ -231,6 +306,7 @@ class MonsterScene extends Phaser.Scene {
                 this.monster.antennas = antennas;
                 return `Added ${count} ${params.color} ${params.size} antenna${count === 1 ? '' : 's'}.`;
             }
+
             case 'get_monster_state': {
                 const state = {};
 
@@ -248,6 +324,7 @@ class MonsterScene extends Phaser.Scene {
 
                 return JSON.stringify(state);
             }
+
             case 'build_monster': {
                 if (!params.body) {
                     return 'Error: build_monster requires a body specification.';

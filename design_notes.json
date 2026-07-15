@@ -30,5 +30,21 @@
   {
     "timestamp": "2026-07-14T19:33:28.679Z",
     "lesson": "User feedback (3.5/5) on part placement defaults: legs should be positioned lower on the body (increase default dy or use larger positive dy offset), arms should sit slightly lower and closer to center (positive dy and negative dx-widening, i.e. reduce dx or use small negative dx to pull them in), and the oversized 'dominant eye' focal scale should be dialed back from ~1.6-1.8 to something more like 1.3-1.5 - the largest tested scale read as too big/dominant rather than striking."
+  },
+  {
+    "timestamp": "2026-07-15T08:40:31.504Z",
+    "lesson": "Tool bug: add_arms/add_legs/add_antennas/add_eyes each REPLACE this.monster.arms/legs/antennas/eyes wholesale rather than accumulating - calling the same tool twice (e.g. two mirror:false calls to fake left+right asymmetry) leaves the first call's sprites orphaned (still visible, but untracked so clear_monster/future updates won't destroy them - memory leak). For left/right asymmetric limbs, ALWAYS use a SINGLE call with mirror left at default true) and differing colorLeft/colorRight, poseLeft/poseRight, angleLeft/angleRight, dxLeft/dxRight, scaleLeft/scaleRight etc. - this is fully supported and is the correct way to get true asymmetry without the overwrite bug."
+  },
+  {
+    "timestamp": "2026-07-15T08:40:42.599Z",
+    "lesson": "add_arms/add_legs schema requires base 'color' and 'pose' even when colorLeft/colorRight and poseLeft/poseRight fully specify both sides independently - omitting the base fields throws 'missing required parameter: color'. Tool should make color/pose optional when both *Left and *Right overrides are provided, since the base value is otherwise unused dead weight."
+  },
+  {
+    "timestamp": "2026-07-15T08:40:49.281Z",
+    "lesson": "add_eyes 'positions' array works well for asymmetric per-eye placement in one call (dx/dy/scale/style/tint/angle all overridable per index) and is preferable to calling add_eyes twice, but the 'dead' eye style renders as a small, dark, low-contrast X shape with no bright color of its own - on medium/dark tinted bodies it becomes nearly invisible unless given an explicit bright tint or scale boost above ~1x."
+  },
+  {
+    "timestamp": "2026-07-15T08:40:53.554Z",
+    "lesson": "build_monster composite tool works well end-to-end for a full symmetric build in one call (body+arms+legs+eyes+mouth+antennas) and correctly clears any prior monster since create_body wipes the scene - good default entry point for straightforward, non-asymmetric monsters."
   }
 ]
