@@ -11,13 +11,13 @@ const PARTS = {
         colors: ['blue', 'green', 'red', 'yellow', 'dark'],
         shapes: ['A', 'B', 'C', 'D', 'E'],
         // arm_{color}{A|B|C|D|E}
-        offset: { x: 90,  y: 10  } 
+        offset: { x: 90,  y: 45  } 
     },  
     leg:     {
         colors: ['blue', 'green', 'red', 'yellow', 'dark'],
         shapes: ['A', 'B', 'C'],
         // leg_{color}{A|B|C}
-        offset: { x: 45,  y: 100 }
+        offset: { x: 45,  y: 140 }
     },
     eye: {
     styles: [
@@ -30,7 +30,7 @@ const PARTS = {
         'psycho_dark', 'psycho_light',
     ],
     // eye_{style}
-    offset: { x: 0, y: -30 }, spacing: 40
+    offset: { x: 0, y: -30 }, spacing: 40, maxRowWidth: 140
 },
     mouth:   {
         styles: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],

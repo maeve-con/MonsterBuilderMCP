@@ -78,5 +78,33 @@
   {
     "timestamp": "2026-07-15T10:29:18.993Z",
     "lesson": "Applying tint:'#ffffff' (pure white) to any part is a no-op visually - Phaser's setTint multiplies texture color by the tint, and multiplying by white (255,255,255) leaves the original color unchanged. To lighten/wash out a part's color, a tint alone won't work; white tint should not be used expecting a color change."
+  },
+  {
+    "timestamp": "2026-07-15T12:32:50.952Z",
+    "lesson": "User feedback (3.5/5, repeated across two review rounds): default arm placement (PARTS.arm.offset y:10) reads as floating/disconnected from the body and sits too high - should increase default dy further (try +30-40 more than current) so arms visually attach near the body's side/shoulder rather than hovering near the top."
+  },
+  {
+    "timestamp": "2026-07-15T12:32:50.954Z",
+    "lesson": "User feedback (3.5/5): default leg placement (PARTS.leg.offset y:100) is still too high on most body shapes/sizes - legs should sit lower, closer to the visual bottom edge of the body silhouette. Recommend increasing default leg offset.y substantially (e.g. to ~130-150) or scaling leg dy relative to body scale/shape height, since fixed offset doesn't account for body size variation."
+  },
+  {
+    "timestamp": "2026-07-15T12:32:50.956Z",
+    "lesson": "User feedback (3.5/5): with higher eye counts (4+), eyes stack horizontally using fixed 40px spacing and visibly extend past the body's silhouette edges - looks bad. Needed tool fix: either auto-reduce spacing as count increases (spacing = min(40, bodyWidth/count)), cap effective row width to stay within body bounds, or wrap eyes into multiple rows for count>4 instead of one long horizontal line. Until fixed, avoid count>3 eyes unless manually compensating with tighter dx via positions overrides."
+  },
+  {
+    "timestamp": "2026-07-15T12:35:01.697Z",
+    "lesson": "Fixed in parts.js/scene.js: arm default offset.y raised from 10 to 45 and leg default offset.y raised from 100 to 140 to stop arms/legs from floating too high/disconnected from the body (user feedback, 2 review rounds). Also added PARTS.eye.maxRowWidth (140px) and made add_eyes auto-shrink spacing (min of default 40px and maxRowWidth/(count-1)) so eye rows no longer overflow past the body silhouette at count>=4. Browser tab must be reloaded to pick up these scene.js/parts.js changes since it's plain script tags with no hot-reload."
+  },
+  {
+    "timestamp": "2026-07-15T12:41:33.471Z",
+    "lesson": "Confirmed fix works: with arm offset.y=45 and leg offset.y=140, both limbs now visually attach to the body (shoulder/hip) instead of floating - big improvement over prior defaults. Remaining nitpick: the raised leg dy pushes legs low enough that on shape F they now sit almost fully below the body silhouette with a visible gap, so for shape F specifically consider dy in the 120-130 range rather than the new 140 default, or pair with stance:'high' to compensate."
+  },
+  {
+    "timestamp": "2026-07-15T12:41:51.529Z",
+    "lesson": "On a body scaled up 1.3x (large silhouette), the fixed absolute eye offset/spacing (not scaled with body) makes two dominant-scaled eyes sit close enough to visibly overlap (one eye's white sclera edge cuts into the other) - eye spacing should ideally scale with body.scale, or manually increase dx spread when body scale>1.2 to avoid overlap. Also confirms body scale 1.3 + leg offset.y=140 pairs well, no gap this time (round shape B doesn't taper like F)."
+  },
+  {
+    "timestamp": "2026-07-15T12:42:13.052Z",
+    "lesson": "Negative dx on add_arms (e.g. dx:-20 applied to mirrored pair) successfully pulls both arms inward toward the body center without them overlapping the torso awkwardly - good technique for a more compact/hugging arm stance, complements the earlier note that positive dx widens the pair. Also: paired antennas (count 2) with a shared angle (e.g. -25) both tilt the same direction since they're mirrored around center, producing a 'windswept' look rather than true asymmetry - for asymmetric antenna lean, use count:1 or manually add two separate calls is not possible (overwrite bug, lesson 9), so single antenna remains the only clean way to get one-sided antenna asymmetry."
   }
 ]

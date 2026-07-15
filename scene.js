@@ -235,8 +235,11 @@ class MonsterScene extends Phaser.Scene {
             case 'add_eyes': {
                 if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
                 const off = PARTS.eye.offset;
-                const spacing = PARTS.eye.spacing;
                 const count = params.count || 2;
+                const maxRowWidth = PARTS.eye.maxRowWidth || PARTS.eye.spacing * 3;
+                const spacing = count > 1
+                    ? Math.min(PARTS.eye.spacing, maxRowWidth / (count - 1))
+                    : PARTS.eye.spacing;
                 const baseDx = params.dx || 0;
                 const baseDy = params.dy || 0;
 
