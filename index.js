@@ -348,7 +348,24 @@ server.registerTool(
     }
 );
 
-let shotCount = 0;
+const GALLERY_DIR = 'gallery';
+
+function getStartingShotCount() {
+    try {
+        const files = fs.readdirSync(GALLERY_DIR);
+        const numbers = files
+            .map((f) => f.match(/^monster_(\d+)\.png$/))
+            .filter(Boolean)
+            .map((m) => parseInt(m[1], 10));
+        return numbers.length > 0 ? Math.max(...numbers) : 0;
+    } catch (e) {
+        if (e.code === 'ENOENT') return 0; // gallery doesn't exist yet — first run
+        throw e;
+    }
+}
+
+let shotCount = getStartingShotCount();
+console.error(`[gallery] resuming screenshot numbering from monster_${shotCount + 1}.png`);
 
 server.registerTool(
     'take_screenshot',
@@ -361,8 +378,8 @@ server.registerTool(
             const reply = await sendToGame('take_screenshot');
             const b64 = reply.result;
 
-            fs.mkdirSync('gallery', { recursive: true });
-            fs.writeFileSync(`gallery/monster_${++shotCount}.png`, Buffer.from(b64, 'base64'));
+            fs.mkdirSync(GALLERY_DIR, { recursive: true });
+            fs.writeFileSync(`${GALLERY_DIR}/monster_${++shotCount}.png`, Buffer.from(b64, 'base64'));
 
             return {
                 content: [{ type: 'image', data: b64, mimeType: 'image/png' }],
