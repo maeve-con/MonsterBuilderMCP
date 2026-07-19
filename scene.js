@@ -83,6 +83,15 @@ class MonsterScene extends Phaser.Scene {
         this.statusText = this.add.text(10, 10, 'waiting for bridge connection...',
             { color: '#888', fontSize: '14px' });
         this.connectToBridge();
+
+        // Example shape (agent adds entries following this pattern):
+        // add_single_arm: {
+        //     description: 'Place ONE arm on the given side only (no mirroring). ' +
+        //                  'Pose D dangles limply, good for weary characters.',
+        //     params: '{ side: "left"|"right", color, pose, tint?, scale?, dx?, dy? }',
+        //     handler: (p) => { ...; return 'what happened'; },
+        // },
+        this.experimental = {};
     }
 
     connectToBridge() {
@@ -451,8 +460,21 @@ class MonsterScene extends Phaser.Scene {
                 });
             }
 
-            default:
+            case 'list_experimental_commands': {
+                const names = Object.keys(this.experimental);
+                if (names.length === 0) return 'No experimental commands yet.';
+                return JSON.stringify(names.map(n => ({
+                    name: n,
+                    description: this.experimental[n].description,
+                    params: this.experimental[n].params,
+                })), null, 2);
+            }
+
+            default: {
+                const exp = this.experimental[command];
+                if (exp) return exp.handler(params);
                 return `Unknown command: ${command}`;
+            }
         }
     }
 }

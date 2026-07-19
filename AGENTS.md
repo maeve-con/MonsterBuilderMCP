@@ -35,6 +35,34 @@ MCP client ──(stdio)──> Phaser MCP server (Node, index.js)
   `mouthA.png`..`mouthJ.png`, `detail_{color}_antenna_{small|large}.png`,
   `eye_*.png`. `parts.js` documents the naming pattern per part type.
 
+## Rules of engagement — extending the toolkit
+
+The agent is permitted, and encouraged, to extend its own toolkit when it hits an
+expressive wall. That privilege comes with rules:
+
+1. **`scene.js` may be edited freely, but new capabilities go in the experimental
+   registry (`this.experimental` in `create()`), never as new `switch` cases in
+   `executeCommand`.** The registry's shape is what guarantees every capability
+   ships with a description — a raw `case` doesn't enforce that.
+2. **Every registry entry needs an honest, specific description.** Bad:
+   `'adds arm'` — tells you nothing about what makes it different from `add_arms`.
+   Good: `'Place ONE arm on the given side only (no mirroring). Pose D dangles
+   limply, good for weary characters.'` — names the constraint (no mirroring) and
+   the payoff (what pose D is for). Write the description you'd want to read cold
+   in a future session with no other context.
+3. **`index.js` is edited only during promotion** — turning a proven experimental
+   command into a real `registerTool` with a proper Zod schema. Outside of
+   promotion, leave `index.js` alone. The bridge and queue plumbing in *both*
+   files (`wss`/`sendToGame` in `index.js`; `connectToBridge`/`commandQueue`/
+   `update()` in `scene.js`) is off-limits entirely — it's what keeps the two
+   processes talking, and breaking it kills the session.
+4. **One series name per style, identical to the memory style tag.** Use that
+   exact name in every `take_screenshot` and `remember` call for that style —
+   memory and gallery share one namespace.
+5. **Git commit before every iteration.** Any broken edit is then one
+   `git checkout` from recovery, and the commit history doubles as a record of
+   what the agent built and when.
+
 ## Critical gotcha: command flow across two threads/processes
 
 - The Node side (`index.js`) and browser side (`scene.js`) are **separate

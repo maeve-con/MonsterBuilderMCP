@@ -381,7 +381,6 @@ function slugifySeries(series) {
     return series.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-// scan the series' own folder for the highest existing shot number every time.
 function nextShotNumber(seriesDir) {
     let files;
     try {
@@ -497,6 +496,45 @@ server.registerTool(
             .map((n, i) => `${i + 1}. [${n.timestamp}] ${n.lesson}`)
             .join('\n');
         return { content: [{ type: 'text', text }] };
+    }
+);
+
+server.registerTool(
+    'experimental_command',
+    {
+        description:
+            'Invoke an experimental game capability by name. These are new commands ' +
+            'added to scene.js that are not yet first-class tools. ' +
+            'Call list_experimental_commands FIRST to discover what exists and how to call it.',
+        inputSchema: z.object({
+            command: z.string().describe('Experimental command name'),
+            params: z.record(z.any()).optional().describe('Parameters, as documented by list_experimental_commands'),
+        }),
+    },
+    async ({ command, params }) => {
+        try {
+            const reply = await sendToGame(command, params ?? {});
+            return { content: [{ type: 'text', text: String(reply.result) }] };
+        } catch (err) {
+            return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+        }
+    }
+);
+
+server.registerTool(
+    'list_experimental_commands',
+    {
+        description: 'List experimental game capabilities currently available via experimental_command, with their ' +
+            'descriptions and parameter shapes. Call this before using experimental_command.',
+        inputSchema: z.object({}),
+    },
+    async () => {
+        try {
+            const reply = await sendToGame('list_experimental_commands');
+            return { content: [{ type: 'text', text: reply.result }] };
+        } catch (err) {
+            return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+        }
     }
 );
 
