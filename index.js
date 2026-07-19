@@ -377,19 +377,10 @@ server.registerTool(
 
 const GALLERY_DIR = 'gallery';
 
-// Normalize a series/style name to a filesystem- and namespace-safe slug. Agents
-// will pass "Rust Bucket", "rust_bucket", and "rust-bucket" interchangeably across
-// sessions — without this they'd land in different gallery folders / memory
-// namespaces for what's supposed to be one style. Shared by take_screenshot
-// (series) and remember/recall/replace_notes (style) so the two namespaces stay
-// identical for the same name.
 function slugify(name) {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-// Never trust an in-memory counter here: it dies with the server process and would
-// silently gap or overwrite the gallery on restart. The filesystem is the counter —
-// scan the series' own folder for the highest existing shot number every time.
 function nextShotNumber(seriesDir) {
     let files;
     try {
@@ -431,8 +422,6 @@ server.registerTool(
 
             fs.writeFileSync(pngPath, Buffer.from(b64, 'base64'));
 
-            // Sidecar: the same state data get_monster_state already captures, so any
-            // monster in any gallery folder can be rebuilt exactly from its sidecar.
             let stateText = '{}';
             try {
                 const stateReply = await sendToGame('get_monster_state');
@@ -535,8 +524,6 @@ server.registerTool(
             return { content: [{ type: 'text', text }] };
         }
 
-        // No style given: show everything, grouped, so nothing is silently hidden
-        // and lessons from different styles never interleave in one undifferentiated list.
         const byStyle = {};
         for (const n of notes) {
             const key = n.style || '(no style — predates namespacing)';
