@@ -377,10 +377,19 @@ server.registerTool(
 
 const GALLERY_DIR = 'gallery';
 
-function slugifySeries(series) {
-    return series.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// Normalize a series/style name to a filesystem- and namespace-safe slug. Agents
+// will pass "Rust Bucket", "rust_bucket", and "rust-bucket" interchangeably across
+// sessions — without this they'd land in different gallery folders / memory
+// namespaces for what's supposed to be one style. Shared by take_screenshot
+// (series) and remember/recall/replace_notes (style) so the two namespaces stay
+// identical for the same name.
+function slugify(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// Never trust an in-memory counter here: it dies with the server process and would
+// silently gap or overwrite the gallery on restart. The filesystem is the counter —
+// scan the series' own folder for the highest existing shot number every time.
 function nextShotNumber(seriesDir) {
     let files;
     try {
@@ -412,7 +421,7 @@ server.registerTool(
             const reply = await sendToGame('take_screenshot');
             const b64 = reply.result;
 
-            const slug = slugifySeries(series);
+            const slug = slugify(series);
             const seriesDir = `${GALLERY_DIR}/${slug}`;
             fs.mkdirSync(seriesDir, { recursive: true });
 
@@ -422,6 +431,8 @@ server.registerTool(
 
             fs.writeFileSync(pngPath, Buffer.from(b64, 'base64'));
 
+            // Sidecar: the same state data get_monster_state already captures, so any
+            // monster in any gallery folder can be rebuilt exactly from its sidecar.
             let stateText = '{}';
             try {
                 const stateReply = await sendToGame('get_monster_state');
@@ -454,28 +465,44 @@ function loadNotes() {
     }
 }
 
+function saveNotes(notes) {
+    fs.writeFileSync(NOTES_PATH, JSON.stringify(notes, null, 2));
+}
+
 server.registerTool(
     'remember',
     {
         description:
-            'Store a design lesson you have learned, so future design sessions can benefit from it. ' +
-            'Lessons should be specific and actionable, e.g. "tints below #444444 make parts hard to ' +
-            'distinguish against the dark background", not vague, e.g. "use good colors".',
+            'Store a design lesson, namespaced to a style — one brain per style. Use the exact same name you pass ' +
+            'as `series` to take_screenshot, so memory and gallery share one namespace. ' +
+            'Lessons should be specific and actionable, e.g. "tints below #444444 make parts hard to distinguish ' +
+            'against the dark background", not vague, e.g. "use good colors". ' +
+            'If a lesson draws on a specific monster, you MUST cite its screenshot path (the path take_screenshot ' +
+            'replied with), e.g. "gallery/rust-bucket/007.png shows the tint washing out" — referring to a monster ' +
+            'by number instead of path is not acceptable, since gallery numbering can drift out of sync with ' +
+            'earlier sessions\' notes. General lessons not tied to one monster don\'t need a citation.',
         inputSchema: z.object({
-            lesson: z.string().describe('The design lesson to store'),
+            style: z.string().describe(
+                'The style/series this lesson belongs to, e.g. "rust-bucket". Same name as your take_screenshot series.'),
+            lesson: z.string().describe(
+                'The design lesson to store. Cite a gallery screenshot path (e.g. "gallery/rust-bucket/007.png") ' +
+                'if the lesson draws on a specific monster.'),
         }),
     },
-    async ({ lesson }) => {
+    async ({ style, lesson }) => {
+        const slug = slugify(style);
         const notes = loadNotes();
         notes.push({
             timestamp: new Date().toISOString(),
-            lesson: lesson,
+            style: slug,
+            lesson,
         });
-        fs.writeFileSync(NOTES_PATH, JSON.stringify(notes, null, 2));
+        saveNotes(notes);
 
-        console.error(`[memory] stored lesson #${notes.length}`);
+        const styleCount = notes.filter((n) => n.style === slug).length;
+        console.error(`[memory] stored lesson #${styleCount} for style "${slug}"`);
         return {
-            content: [{ type: 'text', text: `Lesson stored. You now have ${notes.length} lessons.` }],
+            content: [{ type: 'text', text: `Lesson stored under style "${slug}". You now have ${styleCount} lessons for this style.` }],
         };
     }
 );
@@ -483,19 +510,76 @@ server.registerTool(
 server.registerTool(
     'recall',
     {
-        description: 'Retrieve all design lessons stored so far from previous sessions. ' +
-            'Call this at the start of a design task to apply what you have already learned before designing anything.',
-        inputSchema: z.object({}),
+        description: 'Retrieve stored design lessons. Pass style to see only that style\'s lessons — call this at ' +
+            'the start of a design task, before designing anything, using the style you\'re about to work in. ' +
+            'Omit style to see every lesson across every style, grouped by style.',
+        inputSchema: z.object({
+            style: z.string().optional().describe('Filter to lessons stored under this style/series name.'),
+        }),
     },
-    async () => {
+    async ({ style }) => {
         const notes = loadNotes();
         if (notes.length === 0) {
             return { content: [{ type: 'text', text: 'No lessons stored yet.' }] };
         }
-        const text = notes
-            .map((n, i) => `${i + 1}. [${n.timestamp}] ${n.lesson}`)
-            .join('\n');
+
+        if (style) {
+            const slug = slugify(style);
+            const filtered = notes.filter((n) => n.style === slug);
+            if (filtered.length === 0) {
+                return { content: [{ type: 'text', text: `No lessons stored yet for style "${slug}".` }] };
+            }
+            const text = filtered
+                .map((n, i) => `${i + 1}. [${n.timestamp}] ${n.lesson}`)
+                .join('\n');
+            return { content: [{ type: 'text', text }] };
+        }
+
+        // No style given: show everything, grouped, so nothing is silently hidden
+        // and lessons from different styles never interleave in one undifferentiated list.
+        const byStyle = {};
+        for (const n of notes) {
+            const key = n.style || '(no style — predates namespacing)';
+            (byStyle[key] = byStyle[key] || []).push(n);
+        }
+        const text = Object.entries(byStyle)
+            .map(([styleName, styleNotes]) => {
+                const lines = styleNotes.map((n, i) => `  ${i + 1}. [${n.timestamp}] ${n.lesson}`).join('\n');
+                return `## ${styleName}\n${lines}`;
+            })
+            .join('\n\n');
         return { content: [{ type: 'text', text }] };
+    }
+);
+
+server.registerTool(
+    'replace_notes',
+    {
+        description:
+            'Consolidation ritual — overwrite ALL stored lessons for one style with a new, smaller set. ' +
+            'Every 5 iterations: recall the current style, write a merged set of lessons that resolves ' +
+            'contradictions (keep the later finding, note in the lesson text what it superseded), drops anything ' +
+            'the current baseline has fully absorbed, and preserves evidence paths through the rewrite. ' +
+            'This REPLACES that style\'s entries entirely — lessons stored under other styles are untouched.',
+        inputSchema: z.object({
+            style: z.string().describe('The style/series whose lessons are being consolidated/replaced.'),
+            lessons: z.array(z.string()).describe(
+                'The full, consolidated set of lessons for this style — replaces everything previously stored for it. ' +
+                'Carry forward evidence-path citations from the lessons you\'re merging.'),
+        }),
+    },
+    async ({ style, lessons }) => {
+        const slug = slugify(style);
+        const notes = loadNotes();
+        const others = notes.filter((n) => n.style !== slug);
+        const now = new Date().toISOString();
+        const replaced = lessons.map((lesson) => ({ timestamp: now, style: slug, lesson }));
+        saveNotes([...others, ...replaced]);
+
+        console.error(`[memory] consolidated style "${slug}": ${lessons.length} lesson(s) replacing prior entries`);
+        return {
+            content: [{ type: 'text', text: `Replaced style "${slug}"'s lessons with ${lessons.length} consolidated lesson(s).` }],
+        };
     }
 );
 
