@@ -1,5 +1,34 @@
 const STANCE_DY = { low: 25, normal: 0, high: -20 };
 
+// --- Color reporting helpers (1b/1c) ---
+// Uses PART_BASE_COLORS / effectiveColor / luminance from parts.js.
+
+function describeLuminance(l) {
+    if (l < 60) return 'very dark';
+    if (l < 110) return 'dark';
+    if (l < 170) return 'medium';
+    if (l < 220) return 'bright';
+    return 'very bright';
+}
+
+// Short suffix for an add_* reply string, e.g.
+// " (base dark, tint #cd853f, effective \u2248 #271f17 \u2014 very dark)"
+// Returns '' when there's no tint or the color name isn't in PART_BASE_COLORS
+// (e.g. eye styles, mouth styles — those aren't plain color names).
+function tintNote(colorName, tintHex) {
+    if (!tintHex || !colorName || !PART_BASE_COLORS[colorName]) return '';
+    const base = PART_BASE_COLORS[colorName];
+    const eff = effectiveColor(base, tintHex);
+    return ` (base ${colorName}, tint ${tintHex}, effective \u2248 ${eff} \u2014 ${describeLuminance(luminance(eff))})`;
+}
+
+// Stashes the color name + tint that produced a part, so describe_monster_colors
+// can reconstruct the report later without re-deriving it from texture keys.
+function tagColor(obj, colorName, tintHex) {
+    if (obj) obj.monsterColorMeta = { colorName: colorName || null, tint: tintHex || null };
+    return obj;
+}
+
 class MonsterScene extends Phaser.Scene {
     constructor() {
         super('MonsterScene');
@@ -142,9 +171,10 @@ class MonsterScene extends Phaser.Scene {
 
                 const body = this.add.image(x, y, key);
                 this.applyModifiers(body, params);
+                tagColor(body, params.color, params.tint);
 
                 this.monster.body = body;
-                return `Created a ${params.color} type-${params.shape} body.`;
+                return `Created a ${params.color} type-${params.shape} body.${tintNote(params.color, params.tint)}`;
             }
 
             case 'add_arms': {
@@ -164,10 +194,12 @@ class MonsterScene extends Phaser.Scene {
                 const rightKey = `arm_${rightP.color}${rightP.pose}`;
                 const rightArm = this.add.image(CENTER_X + off.x + rightP.dx, CENTER_Y + off.y + rightP.dy, rightKey);
                 this.applyModifiers(rightArm, rightP);
+                tagColor(rightArm, rightP.color, rightP.tint);
 
                 let leftArm = null;
+                let leftP = null;
                 if (params.mirror !== false) {
-                    const leftP = {
+                    leftP = {
                         color: params.colorLeft || params.color,
                         pose: params.poseLeft || params.pose,
                         tint: params.tintLeft || params.tint,
@@ -181,12 +213,14 @@ class MonsterScene extends Phaser.Scene {
                     leftArm = this.add.image(CENTER_X - off.x + leftP.dx, CENTER_Y + off.y + leftP.dy, leftKey)
                         .setFlipX(true);
                     this.applyModifiers(leftArm, leftP);
+                    tagColor(leftArm, leftP.color, leftP.tint);
                 }
 
                 this.monster.arms = leftArm ? [leftArm, rightArm] : [rightArm];
                 return leftArm
-                    ? `Added arms: right=${rightP.color}${rightP.pose}, left=${params.colorLeft || params.color}${params.poseLeft || params.pose}.`
-                    : `Added a single right arm: ${rightP.color}${rightP.pose} (mirror off).`;
+                    ? `Added arms: right=${rightP.color}${rightP.pose}${tintNote(rightP.color, rightP.tint)}, ` +
+                      `left=${leftP.color}${leftP.pose}${tintNote(leftP.color, leftP.tint)}.`
+                    : `Added a single right arm: ${rightP.color}${rightP.pose} (mirror off).${tintNote(rightP.color, rightP.tint)}`;
             }
 
             case 'add_legs': {
@@ -207,10 +241,12 @@ class MonsterScene extends Phaser.Scene {
                 const rightKey = `leg_${rightP.color}${rightP.pose}`;
                 const rightLeg = this.add.image(CENTER_X + off.x + rightP.dx, CENTER_Y + off.y + rightP.dy, rightKey);
                 this.applyModifiers(rightLeg, rightP);
+                tagColor(rightLeg, rightP.color, rightP.tint);
 
                 let leftLeg = null;
+                let leftP = null;
                 if (params.mirror !== false) {
-                    const leftP = {
+                    leftP = {
                         color: params.colorLeft || params.color,
                         pose: params.poseLeft || params.pose,
                         tint: params.tintLeft || params.tint,
@@ -224,12 +260,14 @@ class MonsterScene extends Phaser.Scene {
                     leftLeg = this.add.image(CENTER_X - off.x + leftP.dx, CENTER_Y + off.y + leftP.dy, leftKey)
                         .setFlipX(true);
                     this.applyModifiers(leftLeg, leftP);
+                    tagColor(leftLeg, leftP.color, leftP.tint);
                 }
 
                 this.monster.legs = leftLeg ? [leftLeg, rightLeg] : [rightLeg];
                 return leftLeg
-                    ? `Added legs: right=${rightP.color}${rightP.pose}, stance=${params.stance || 'normal'}.`
-                    : `Added a single right leg: ${rightP.color}${rightP.pose} (mirror off).`;
+                    ? `Added legs: right=${rightP.color}${rightP.pose}${tintNote(rightP.color, rightP.tint)}, ` +
+                      `left=${leftP.color}${leftP.pose}${tintNote(leftP.color, leftP.tint)}, stance=${params.stance || 'normal'}.`
+                    : `Added a single right leg: ${rightP.color}${rightP.pose} (mirror off).${tintNote(rightP.color, rightP.tint)}`;
             }
 
             case 'add_eyes': {
@@ -263,6 +301,10 @@ class MonsterScene extends Phaser.Scene {
 
                     const eye = this.add.image(x, y, key);
                     this.applyModifiers(eye, merged);
+                    // Eyes are style-based (e.g. "angry_blue"), not a plain color
+                    // name, so there's no PART_BASE_COLORS entry to compute against —
+                    // tag the tint anyway so describe_monster_colors can flag it.
+                    tagColor(eye, null, merged.tint);
                     eyes.push(eye);
                 }
 
@@ -303,11 +345,59 @@ class MonsterScene extends Phaser.Scene {
                     const x = CENTER_X + (i - (count - 1) / 2) * spacing + dx;
                     const antenna = this.add.image(x, CENTER_Y + off.y + dy, key);
                     this.applyModifiers(antenna, params);
+                    tagColor(antenna, params.color, params.tint);
                     antennas.push(antenna);
                 }
 
                 this.monster.antennas = antennas;
-                return `Added ${count} ${params.color} ${params.size} antenna${count === 1 ? '' : 's'}.`;
+                return `Added ${count} ${params.color} ${params.size} antenna${count === 1 ? '' : 's'}.${tintNote(params.color, params.tint)}`;
+            }
+
+            case 'describe_monster_colors': {
+                if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+
+                const resolve = (meta) => {
+                    if (!meta || !meta.colorName || !PART_BASE_COLORS[meta.colorName]) return null;
+                    const eff = effectiveColor(PART_BASE_COLORS[meta.colorName], meta.tint || '#ffffff');
+                    return { effective: eff, luminance: luminance(eff) };
+                };
+
+                const bodyMeta = this.monster.body.monsterColorMeta || {};
+                const bodyResolved = resolve(bodyMeta);
+                const bodyLum = bodyResolved ? bodyResolved.luminance : null;
+
+                const report = [];
+                const describeOne = (label, obj) => {
+                    if (!obj) return;
+                    const meta = obj.monsterColorMeta || {};
+                    const resolved = resolve(meta);
+                    report.push({
+                        part: label,
+                        base: meta.colorName || 'n/a (style-based part, no plain color name)',
+                        tint: meta.tint || null,
+                        effective: resolved ? resolved.effective : null,
+                        luminance: resolved ? resolved.luminance : null,
+                        luminanceDiffFromBody: (resolved && bodyLum !== null) ? resolved.luminance - bodyLum : null,
+                    });
+                };
+
+                describeOne('body', this.monster.body);
+                if (this.monster.arms) {
+                    const labels = this.monster.arms.length === 2 ? ['arm.left', 'arm.right'] : ['arm.right'];
+                    this.monster.arms.forEach((a, i) => describeOne(labels[i] || `arm.${i}`, a));
+                }
+                if (this.monster.legs) {
+                    const labels = this.monster.legs.length === 2 ? ['leg.left', 'leg.right'] : ['leg.right'];
+                    this.monster.legs.forEach((l, i) => describeOne(labels[i] || `leg.${i}`, l));
+                }
+                if (this.monster.antennas) {
+                    this.monster.antennas.forEach((a, i) => describeOne(`antenna.${i}`, a));
+                }
+                if (this.monster.eyes) {
+                    this.monster.eyes.forEach((e, i) => describeOne(`eye.${i}`, e));
+                }
+
+                return JSON.stringify(report, null, 2);
             }
 
             case 'get_monster_state': {

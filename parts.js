@@ -46,3 +46,27 @@ const PARTS = {
 };
 const CENTER_X = 400;
 const CENTER_Y = 300;
+
+const PART_BASE_COLORS = {
+    blue:   '#43d7e5',
+    green:  '#2ecc71',
+    red:    '#ff4362',
+    yellow: '#ffb600',
+    dark:   '#4f3f2f',
+};
+
+function effectiveColor(baseHex, tintHex) {
+    const b = parseInt(baseHex.slice(1), 16);
+    const t = parseInt(tintHex.slice(1), 16);
+    const ch = (shift) =>
+        Math.round(((b >> shift & 0xff) * (t >> shift & 0xff)) / 255);
+    return '#' + [16, 8, 0]
+        .map(s => ch(s).toString(16).padStart(2, '0')).join('');
+}
+
+function luminance(hex) {
+    const v = parseInt(hex.slice(1), 16);
+    return Math.round(0.2126 * (v >> 16 & 255)
+                    + 0.7152 * (v >> 8 & 255)
+                    + 0.0722 * (v & 255));
+}

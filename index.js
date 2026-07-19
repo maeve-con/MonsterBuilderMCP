@@ -68,7 +68,12 @@ const eyeStyles = [
 
 const visualModifiers = {
     tint: z.string().optional()
-        .describe('Hex color to tint this part, e.g. "#8833ff". Recolors the sprite while keeping its shading/shape.'),
+        .describe('Hex color to tint this part, e.g. "#8833ff". Tint is MULTIPLICATIVE, not a repaint: ' +
+            'each color channel of the tint is multiplied against the sprite\'s own pixel channels. ' +
+            'Tinting a dark base texture only darkens it further — tinting a dark part with saddle-brown ' +
+            '"#cd853f" pushes it toward mud, not brown — a tint\'s own hue only comes through reliably on ' +
+            'lighter/brighter base colors. White "#ffffff" tint is always a no-op (multiplying by 255 changes nothing). ' +
+            'Call describe_monster_colors to see the actual computed effective color and brightness before committing.'),
     scale: z.coerce.number().optional()
         .describe('Uniform scale factor, e.g. 1.5 = 50% bigger, 0.6 = smaller. Overridden per-axis by scaleX/scaleY if given.'),
     scaleX: z.coerce.number().optional()
@@ -90,7 +95,8 @@ server.registerTool(
     'create_body',
     {
         description: 'Create the monster body. Must be called before adding any other parts. Replaces any existing monster. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size), angle (rotation), dx/dy (offset from center).',
+            'Supports optional visual modifiers: tint (multiplicative hex color — darkens more than it repaints, see the tint parameter), ' +
+            'scale/scaleX/scaleY (size), angle (rotation), dx/dy (offset from center).',
         inputSchema: withModifiers(z.object({
             color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Body color, dark=brown'),
             shape: z.enum(['A', 'B', 'C', 'D', 'E', 'F']).describe('Body shape variant: A=square, B=round, C=oval, D=squat oval, E=long body, F=long body with hair tufts'),
@@ -122,8 +128,8 @@ server.registerTool(
             colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override right arm color'),
             poseLeft: z.enum(['A', 'B', 'C', 'D', 'E']).optional().describe('Override left arm pose'),
             poseRight: z.enum(['A', 'B', 'C', 'D', 'E']).optional().describe('Override right arm pose'),
-            tintLeft: z.string().optional().describe('Override left arm tint'),
-            tintRight: z.string().optional().describe('Override right arm tint'),
+            tintLeft: z.string().optional().describe('Override left arm tint — multiplicative (see the base tint parameter): darkens dark arm colors more than it repaints them.'),
+            tintRight: z.string().optional().describe('Override right arm tint — multiplicative (see the base tint parameter): darkens dark arm colors more than it repaints them.'),
             scaleLeft: z.coerce.number().optional().describe('Override left arm scale'),
             scaleRight: z.coerce.number().optional().describe('Override right arm scale'),
             angleLeft: z.coerce.number().optional().describe('Override left arm rotation in degrees'),
@@ -161,8 +167,8 @@ server.registerTool(
             colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional().describe('Override right leg color'),
             poseLeft: z.enum(['A', 'B', 'C']).optional().describe('Override left leg pose'),
             poseRight: z.enum(['A', 'B', 'C']).optional().describe('Override right leg pose'),
-            tintLeft: z.string().optional().describe('Override left leg tint'),
-            tintRight: z.string().optional().describe('Override right leg tint'),
+            tintLeft: z.string().optional().describe('Override left leg tint — multiplicative (see the base tint parameter): darkens dark leg colors more than it repaints them.'),
+            tintRight: z.string().optional().describe('Override right leg tint — multiplicative (see the base tint parameter): darkens dark leg colors more than it repaints them.'),
             scaleLeft: z.coerce.number().optional().describe('Override left leg scale'),
             scaleRight: z.coerce.number().optional().describe('Override right leg scale'),
             angleLeft: z.coerce.number().optional().describe('Override left leg rotation in degrees'),
@@ -185,7 +191,8 @@ server.registerTool(
 
 const eyePositionOverride = z.object({
     style: z.enum(eyeStyles).optional(),
-    tint: z.string().optional(),
+    tint: z.string().optional()
+        .describe('Per-eye tint override — multiplicative (see the top-level tint parameter): darkens dark eye styles more than it repaints them.'),
     scale: z.coerce.number().optional(),
     angle: z.coerce.number().optional(),
     dx: z.coerce.number().optional(),
@@ -242,7 +249,8 @@ server.registerTool(
     'add_antennas',
     {
         description: 'Add one or more antennas to the monster, evenly spaced. Requires create_body to have been called first. ' +
-            'Supports optional visual modifiers: tint (hex color), scale/scaleX/scaleY (size), angle (rotation), dx/dy (shifts the whole antenna row).',
+            'Supports optional visual modifiers: tint (multiplicative hex color — darkens more than it repaints, see the tint parameter), ' +
+            'scale/scaleX/scaleY (size), angle (rotation), dx/dy (shifts the whole antenna row).',
         inputSchema: withModifiers(z.object({
             color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Antenna color, dark=brown'),
             size: z.enum(['small', 'large']).describe('Antenna size'),
@@ -272,8 +280,8 @@ const armSpec = withModifiers(z.object({
     colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
     poseLeft: z.enum(['A', 'B', 'C', 'D', 'E']).optional(),
     poseRight: z.enum(['A', 'B', 'C', 'D', 'E']).optional(),
-    tintLeft: z.string().optional(),
-    tintRight: z.string().optional(),
+    tintLeft: z.string().optional().describe('Override left arm tint — multiplicative: darkens dark arm colors more than it repaints them.'),
+    tintRight: z.string().optional().describe('Override right arm tint — multiplicative: darkens dark arm colors more than it repaints them.'),
     scaleLeft: z.coerce.number().optional(),
     scaleRight: z.coerce.number().optional(),
     angleLeft: z.coerce.number().optional(),
@@ -293,8 +301,8 @@ const legSpec = withModifiers(z.object({
     colorRight: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).optional(),
     poseLeft: z.enum(['A', 'B', 'C']).optional(),
     poseRight: z.enum(['A', 'B', 'C']).optional(),
-    tintLeft: z.string().optional(),
-    tintRight: z.string().optional(),
+    tintLeft: z.string().optional().describe('Override left leg tint — multiplicative: darkens dark leg colors more than it repaints them.'),
+    tintRight: z.string().optional().describe('Override right leg tint — multiplicative: darkens dark leg colors more than it repaints them.'),
     scaleLeft: z.coerce.number().optional(),
     scaleRight: z.coerce.number().optional(),
     angleLeft: z.coerce.number().optional(),
@@ -348,41 +356,87 @@ server.registerTool(
     }
 );
 
-const GALLERY_DIR = 'gallery';
-
-function getStartingShotCount() {
-    try {
-        const files = fs.readdirSync(GALLERY_DIR);
-        const numbers = files
-            .map((f) => f.match(/^monster_(\d+)\.png$/))
-            .filter(Boolean)
-            .map((m) => parseInt(m[1], 10));
-        return numbers.length > 0 ? Math.max(...numbers) : 0;
-    } catch (e) {
-        if (e.code === 'ENOENT') return 0; // gallery doesn't exist yet — first run
-        throw e;
-    }
-}
-
-let shotCount = getStartingShotCount();
-console.error(`[gallery] resuming screenshot numbering from monster_${shotCount + 1}.png`);
-
 server.registerTool(
-    'take_screenshot',
+    'describe_monster_colors',
     {
-        description: 'Capture an image of the current monster so you can see your work. Use this after building to evaluate the design.',
+        description: 'Report the actual computed color of every part currently on the monster: base color, tint (if any), ' +
+            'the effective color the multiplicative tint actually produces, its luminance (0-255 brightness), and the ' +
+            'luminance difference from the body (contrast). Use this instead of reasoning about tint hex strings directly — ' +
+            'ground truth from code, judgment from you.',
         inputSchema: z.object({}),
     },
     async () => {
         try {
+            const reply = await sendToGame('describe_monster_colors');
+            return { content: [{ type: 'text', text: reply.result }] };
+        } catch (err) {
+            return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+        }
+    }
+);
+
+const GALLERY_DIR = 'gallery';
+
+function slugifySeries(series) {
+    return series.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// scan the series' own folder for the highest existing shot number every time.
+function nextShotNumber(seriesDir) {
+    let files;
+    try {
+        files = fs.readdirSync(seriesDir);
+    } catch (e) {
+        if (e.code === 'ENOENT') return 1; // first shot for this series
+        throw e;
+    }
+    const numbers = files
+        .map((f) => f.match(/^(\d+)\.png$/))
+        .filter(Boolean)
+        .map((m) => parseInt(m[1], 10));
+    return (numbers.length > 0 ? Math.max(...numbers) : 0) + 1;
+}
+
+server.registerTool(
+    'take_screenshot',
+    {
+        description: 'Capture an image of the current monster and save it into its series\' gallery folder, alongside a JSON ' +
+            'sidecar of the exact monster state — so the shot is reproducible later. Use this after building to evaluate the design.',
+        inputSchema: z.object({
+            series: z.string().describe(
+                'The style/series this monster belongs to, e.g. "rust-bucket". ' +
+                'Use the same name as your memory style tag.'),
+        }),
+    },
+    async ({ series }) => {
+        try {
             const reply = await sendToGame('take_screenshot');
             const b64 = reply.result;
 
-            fs.mkdirSync(GALLERY_DIR, { recursive: true });
-            fs.writeFileSync(`${GALLERY_DIR}/monster_${++shotCount}.png`, Buffer.from(b64, 'base64'));
+            const slug = slugifySeries(series);
+            const seriesDir = `${GALLERY_DIR}/${slug}`;
+            fs.mkdirSync(seriesDir, { recursive: true });
+
+            const num = String(nextShotNumber(seriesDir)).padStart(3, '0');
+            const pngPath = `${seriesDir}/${num}.png`;
+            const jsonPath = `${seriesDir}/${num}.json`;
+
+            fs.writeFileSync(pngPath, Buffer.from(b64, 'base64'));
+
+            let stateText = '{}';
+            try {
+                const stateReply = await sendToGame('get_monster_state');
+                stateText = stateReply.result;
+            } catch (e) {
+                stateText = JSON.stringify({ error: `Could not capture state: ${e.message}` });
+            }
+            fs.writeFileSync(jsonPath, stateText);
 
             return {
-                content: [{ type: 'image', data: b64, mimeType: 'image/png' }],
+                content: [
+                    { type: 'image', data: b64, mimeType: 'image/png' },
+                    { type: 'text', text: `Saved ${pngPath}` },
+                ],
             };
         } catch (err) {
             return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
