@@ -2,12 +2,16 @@
 
 ## What this is
 
-A **starter/incomplete** project for a course assignment (CMPM 118). It builds an
-MCP server that lets an LLM assemble a monster sprite (body/arms/legs/eyes/mouth/
-antennas) in a live Phaser browser game, using art from Kenney's Monster Builder
-Pack (`assets/`). Only `create_body` and `clear_monster` are implemented — most
-of the tool surface is `TODO` and must be built out following the existing
-pattern.
+A course assignment (CMPM 118) building an MCP server that lets an LLM assemble
+a monster sprite (body/arms/legs/eyes/mouth/antennas) in a live Phaser browser
+game, using art from Kenney's Monster Builder Pack (`assets/`). The core tool
+surface (`create_body`, `add_arms`, `add_legs`, `add_eyes`, `add_mouth`,
+`add_antennas`, `build_monster`, `get_monster_state`, `take_screenshot`,
+`remember`/`recall`) is implemented, plus color instrumentation
+(`describe_monster_colors`, multiplicative-tint-aware replies), a per-series
+gallery with reproducible sidecars, and an experimental-command escape hatch
+(`experimental_command`/`list_experimental_commands`) for extending the toolkit
+at runtime — see "Rules of engagement" below.
 
 ## Architecture
 
@@ -93,18 +97,23 @@ expressive wall. That privilege comes with rules:
 5. Use `PARTS.<part>.offset` (and `.spacing` for paired parts like eyes/antennas)
    from `parts.js` for positioning relative to `CENTER_X`/`CENTER_Y`.
 
-## Known incomplete pieces (per existing TODO comments)
+## Current state / known limitations
 
-- `parts.js`: `leg`, `eye`, `mouth`, `antenna` entries are missing `colors`/
-  `shapes` arrays (only `body` and `arm` have them filled in).
-- `scene.js` `preload()`: only loads `body_*` textures; arms/legs/eyes/mouths/
-  antennas are not preloaded yet — must be added following the same
-  nested-loop pattern before those parts can be rendered.
-- `scene.js` `executeCommand()`: only `clear_monster` and `create_body` are
-  implemented. Stubbed cases in comments: `add_arms`, `add_legs`, `add_eyes`,
-  `add_mouth`, `add_antennas`, `get_monster_state`, `build_monster`.
-- `index.js`: only the `create_body` tool is registered; comment marks where
-  more tools go.
+- All core part tools, `build_monster`, `get_monster_state`, per-series
+  `take_screenshot`, `describe_monster_colors`, `remember`/`recall`, and the
+  experimental-command escape hatch are implemented and working.
+- `this.experimental` (the registry in `scene.js` `create()`) starts **empty**
+  — it's seeded only with a commented example. `list_experimental_commands`
+  will correctly report "No experimental commands yet" until the agent adds
+  entries.
+- `get_monster_state` (and therefore the `take_screenshot` JSON sidecars it
+  feeds) only captures each part's **texture key** — not tint, scale, angle,
+  or position. A sidecar can tell you *what parts* a monster used, but can't
+  fully reconstruct its exact look. Worth richening if exact reproducibility
+  becomes load-bearing.
+- `gallery/monster_1.png` .. `monster_11.png` are legacy flat-numbered shots
+  from before the per-series `gallery/<slug>/NNN.png` + `NNN.json` structure
+  existed. They're harmless leftovers, not part of any series.
 
 ## Running / testing
 
