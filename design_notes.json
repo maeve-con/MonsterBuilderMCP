@@ -136,5 +136,10 @@
     "timestamp": "2026-07-20T09:12:13.729Z",
     "style": "wound-bloom",
     "lesson": "Two experimental capabilities are live in scene.js: add_scar (procedural Graphics jagged line, no sprite asset — params dx/dy/angle/length/segments/thickness/color) and jitter_part (one-time random dx/dy/angle nudge on an already-placed part, params part/index/maxDx/maxDy/maxAngle). Editing scene.js triggers a live-reload that wipes the current monster — always rebuild_monster before exercising experimental_command again after any scene.js edit."
+  },
+  {
+    "timestamp": "2026-07-20T13:35:31.716Z",
+    "style": "wound-bloom",
+    "lesson": "The get_monster_state/take_screenshot sidecar arrays for arms/legs are ordered [left, right], not [right, left] — confirmed reproducing 010.json exactly required poseLeft/poseRight matching that order (016.json). Getting it backwards (015.json) still looks plausible but doesn't match the sidecar's texture-key order, since left/right poses render as visually distinct shapes either way. Also: since sidecars only store texture keys (no tint/scale/position), exact recreation of a past monster's *look* still requires cross-referencing the written recipe/memory lesson and the PNG itself — the JSON alone only nails down color/shape/pose identity, not the asymmetric tint/scale/dx/dy that made 010 read as an old-injury design."
   }
 ]
