@@ -141,5 +141,10 @@
     "timestamp": "2026-07-20T07:37:34.184Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/003.png: arm pose D (big hooked loop) reads as a stylized/toylike shape rather than an anatomical injury — for the 'regrew wrong' read, poses B/C (bent, more limb-like silhouettes) sell asymmetry-as-anatomy better than pose D's decorative curl."
+  },
+  {
+    "timestamp": "2026-07-20T07:37:59.568Z",
+    "style": "wound-bloom",
+    "lesson": "EXPERIMENT (iteration 4, gallery/wound-bloom/004.png): pushed one arm to scale 2.3 (vs the usual 0.7-1.3 range) to test extreme scale asymmetry. Result: the oversized limb dominates the whole silhouette and towers above the head, reading as a dramatic fantasy/monster-boss feature rather than a subtle anatomical wrongness — it breaks the brief's restraint principle by being immediately eye-catching instead of unsettling-on-second-look. Takeaway: cap limb scale asymmetry around ~1.3-1.5x; beyond that the 'old injury' read is replaced by a 'special power' read."
   }
 ]
