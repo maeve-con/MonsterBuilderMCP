@@ -146,5 +146,15 @@
     "timestamp": "2026-07-20T07:49:00.070Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/005.png: the antenna growth sits far above the head, disconnected from the body silhouette — it reads as a floating decorative antenna rather than an attached growth/wart. Pull growth placement's dy closer to the body outline (less negative dy, or overlapping the head/shoulder) so it reads as emerging FROM the anatomy rather than hovering above it."
+  },
+  {
+    "timestamp": "2026-07-20T07:52:58.710Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/006.png: nudging the antenna growth's dy to +45 (down into the head/shoulder region instead of floating above) makes it read as an attached wart-like growth breaking the silhouette, matching the brief's 'extra antenna reading as a growth' goal — much better than 005's floating antenna. Confirmed fix for growth placement."
+  },
+  {
+    "timestamp": "2026-07-20T07:52:58.713Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/006.png: the 'dead' eye (small X) at 0.75 scale paired with a full-size 'human' eye at 1.1 scale reads as clearly uneven AND both are individually legible (X vs round white sclera) — better asymmetric eye pairing than 003's shrunk closed_happy. Adopt dead+human (or dead+human_red) as a reliable go-to uneven-eye combo."
   }
 ]
