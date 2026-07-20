@@ -156,5 +156,10 @@
     "timestamp": "2026-07-20T07:52:58.713Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/006.png: the 'dead' eye (small X) at 0.75 scale paired with a full-size 'human' eye at 1.1 scale reads as clearly uneven AND both are individually legible (X vs round white sclera) — better asymmetric eye pairing than 003's shrunk closed_happy. Adopt dead+human (or dead+human_red) as a reliable go-to uneven-eye combo."
+  },
+  {
+    "timestamp": "2026-07-20T07:53:27.158Z",
+    "style": "wound-bloom",
+    "lesson": "EXPERIMENT (iteration 8, gallery/wound-bloom/007.png): deliberately made both eyes identical (same style/scale/symmetric dx/dy), violating the 'never symmetric' rule while keeping every other element (mismatched limbs, growth, muted palette) unchanged from 006. Result: the monster instantly reads as a normal, friendly, symmetric-faced cartoon character despite the asymmetric limbs still being present — the limb asymmetry alone isn't enough to sell 'wrongness' once the face is symmetric. Confirms eye asymmetry is the single most load-bearing rule in the brief for the unsettling read; it can't be sacrificed even when other asymmetry cues are present elsewhere on the body."
   }
 ]
