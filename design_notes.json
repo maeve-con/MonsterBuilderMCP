@@ -136,5 +136,15 @@
     "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
     "lesson": "Scale asymmetry cap (EXPERIMENT, gallery/wound-bloom/004.png): limb scale differences should stay within roughly 0.7x-1.5x of each other. Pushing to 2.3x made the oversized limb dominate the whole silhouette, flipping the read from 'subtle old injury' to 'dramatic monster-boss feature' — a violation of the brief's restraint principle. Confirmed as a hard upper bound going forward."
+  },
+  {
+    "timestamp": "2026-07-20T07:49:00.068Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/005.png: body shape F (hair tufts) reads well for 'feral/organic' — the small ragged spikes around the silhouette add texture without extra tooling, and its irregular edge helps sell asymmetry even before limbs are touched. Good default body shape for this style over plain A/B/C."
+  },
+  {
+    "timestamp": "2026-07-20T07:49:00.070Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/005.png: the antenna growth sits far above the head, disconnected from the body silhouette — it reads as a floating decorative antenna rather than an attached growth/wart. Pull growth placement's dy closer to the body outline (less negative dy, or overlapping the head/shoulder) so it reads as emerging FROM the anatomy rather than hovering above it."
   }
 ]
