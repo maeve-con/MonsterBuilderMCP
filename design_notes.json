@@ -121,5 +121,15 @@
     "timestamp": "2026-07-20T07:29:12.613Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/001.png: pairing a tiny 'dead' (X) eye with a large bright angry_red eye gives asymmetry but the huge saturated red eye reads cartoonish/aggressive rather than unsettling. For creepy-not-cartoonish per the brief, prefer duller/desaturated eye styles (human_red, cute_dark, or dead) at uneven scale, and reserve any bright saturated eye for a rare accent, not the default asymmetry move."
+  },
+  {
+    "timestamp": "2026-07-20T07:37:01.345Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/002.png: keeping an asymmetric limb the same dark base as the body with only a muted reddish tint (effective luminance ~24-26 vs body ~35) reads as a bruised/injured version of the same anatomy, not a bolted-on piece — much better than 001's saturated red limb. This is the baseline approach going forward: same base color as body, tint stays close to base hue, small luminance offset (~10-15) for contrast."
+  },
+  {
+    "timestamp": "2026-07-20T07:37:01.347Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/002.png: a dark-tinted antenna (effective #2b0e09, luminance 20) nearly vanishes against the dark navy background — too close in luminance to read as a growth at all. Accent/growth pieces need luminance contrast against BOTH the body and the background, not just the body; keep growth tints brighter than ~luminance 40 or add a small bright accent (like a red tip) even on an otherwise muted growth."
   }
 ]
