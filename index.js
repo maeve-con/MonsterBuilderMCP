@@ -267,6 +267,35 @@ server.registerTool(
     }
 );
 
+server.registerTool(
+    'add_scar',
+    {
+        description: 'Draws a procedural jagged scar/vein mark directly on the monster with Phaser Graphics ' +
+            '(no sprite asset needed) — for old-injury detail the Kenney pack has no asset for. ' +
+            'Requires create_body to have been called first. dx/dy position it relative to body center, angle ' +
+            'rotates the whole mark, length/segments control how jagged the line is (more segments = more zigzag), ' +
+            'thickness sets line width, color is a hex string for the mark (dark reds/browns read as scar tissue, ' +
+            'brighter reds read as fresh/inflamed).',
+        inputSchema: z.object({
+            dx: z.coerce.number().optional().describe('Horizontal pixel offset from body center.'),
+            dy: z.coerce.number().optional().describe('Vertical pixel offset from body center (positive = down).'),
+            angle: z.coerce.number().optional().describe('Rotation in degrees applied to the whole scar mark.'),
+            length: z.coerce.number().optional().describe('Overall length of the scar in pixels (default 60).'),
+            segments: z.coerce.number().int().min(2).optional().describe('Number of jagged zigzag segments (default 4, more = more jagged).'),
+            thickness: z.coerce.number().optional().describe('Line width in pixels (default 3).'),
+            color: z.string().optional().describe('Hex color for the scar, e.g. "#5a1c14" for dark scar tissue, brighter reds for a fresher wound.'),
+        }),
+    },
+    async (params) => {
+        try {
+            const reply = await sendToGame('add_scar', params);
+            return { content: [{ type: 'text', text: reply.result }] };
+        } catch (err) {
+            return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
+        }
+    }
+);
+
 const bodySpec = withModifiers(z.object({
     color: z.enum(['blue', 'green', 'red', 'yellow', 'dark']).describe('Body color, dark=brown'),
     shape: z.enum(['A', 'B', 'C', 'D', 'E', 'F']).describe('Body shape variant'),
