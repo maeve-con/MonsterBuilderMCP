@@ -111,5 +111,15 @@
     "timestamp": "2026-07-20T07:10:00.811Z",
     "style": "wound-bloom",
     "lesson": "Style brief: An organic, feral creature style built around asymmetry read as anatomy, not decoration — mismatched limbs should suggest old injuries that regrew wrong, not a stylistic flourish. Palette stays muted and fleshy: lean on dark and red bases, keep tints close to their base hue rather than washed-out or pastel, and reserve any bright/saturated tint for occasional accents that read as inflammation or infection, not as decoration. Eyes are never a symmetric, centered pair — uneven size and off-center placement is the rule, not the exception. The unsettling quality should come from things being subtly anatomically \"wrong\" (an extra antenna reading as a growth, a mismatched leg stance reading as a limp) rather than from gore or shock — restraint is what makes it creepy instead of cartoonish."
+  },
+  {
+    "timestamp": "2026-07-20T07:29:05.582Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/001.png: full red-tinted arm+leg (effective ≈#99090d, #880d14) against a dark brown body reads as a separate attached prosthetic/costume piece, not an old injury — too much saturated area, too sharp a contrast with the dark base. The tiny red antenna tip (base red tint #aa2222) worked much better as a subtle accent. Lesson: keep asymmetric limbs mostly dark/muted like the body, and confine strong red saturation to small accent zones (antenna tip, maybe a mouth or eye detail), not whole limbs."
+  },
+  {
+    "timestamp": "2026-07-20T07:29:12.613Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/001.png: pairing a tiny 'dead' (X) eye with a large bright angry_red eye gives asymmetry but the huge saturated red eye reads cartoonish/aggressive rather than unsettling. For creepy-not-cartoonish per the brief, prefer duller/desaturated eye styles (human_red, cute_dark, or dead) at uneven scale, and reserve any bright saturated eye for a rare accent, not the default asymmetry move."
   }
 ]
