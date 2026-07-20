@@ -108,43 +108,33 @@
     "lesson": "Negative dx on add_arms (e.g. dx:-20 applied to mirrored pair) successfully pulls both arms inward toward the body center without them overlapping the torso awkwardly - good technique for a more compact/hugging arm stance, complements the earlier note that positive dx widens the pair. Also: paired antennas (count 2) with a shared angle (e.g. -25) both tilt the same direction since they're mirrored around center, producing a 'windswept' look rather than true asymmetry - for asymmetric antenna lean, use count:1 or manually add two separate calls is not possible (overwrite bug, lesson 9), so single antenna remains the only clean way to get one-sided antenna asymmetry."
   },
   {
-    "timestamp": "2026-07-20T07:10:00.811Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
     "lesson": "Style brief: An organic, feral creature style built around asymmetry read as anatomy, not decoration — mismatched limbs should suggest old injuries that regrew wrong, not a stylistic flourish. Palette stays muted and fleshy: lean on dark and red bases, keep tints close to their base hue rather than washed-out or pastel, and reserve any bright/saturated tint for occasional accents that read as inflammation or infection, not as decoration. Eyes are never a symmetric, centered pair — uneven size and off-center placement is the rule, not the exception. The unsettling quality should come from things being subtly anatomically \"wrong\" (an extra antenna reading as a growth, a mismatched leg stance reading as a limp) rather than from gore or shock — restraint is what makes it creepy instead of cartoonish."
   },
   {
-    "timestamp": "2026-07-20T07:29:05.582Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/001.png: full red-tinted arm+leg (effective ≈#99090d, #880d14) against a dark brown body reads as a separate attached prosthetic/costume piece, not an old injury — too much saturated area, too sharp a contrast with the dark base. The tiny red antenna tip (base red tint #aa2222) worked much better as a subtle accent. Lesson: keep asymmetric limbs mostly dark/muted like the body, and confine strong red saturation to small accent zones (antenna tip, maybe a mouth or eye detail), not whole limbs."
+    "lesson": "Limb coloring baseline (gallery/wound-bloom/001.png vs 002.png): give an asymmetric limb the SAME base color as the body (usually dark), tinted close to its own hue with only a small luminance offset (~10-15 below body luminance). A whole limb tinted a saturated color (e.g. full red arm+leg in 001) reads as a bolted-on prosthetic, not an old injury — reserve strong saturation for small accent zones only."
   },
   {
-    "timestamp": "2026-07-20T07:29:12.613Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/001.png: pairing a tiny 'dead' (X) eye with a large bright angry_red eye gives asymmetry but the huge saturated red eye reads cartoonish/aggressive rather than unsettling. For creepy-not-cartoonish per the brief, prefer duller/desaturated eye styles (human_red, cute_dark, or dead) at uneven scale, and reserve any bright saturated eye for a rare accent, not the default asymmetry move."
+    "lesson": "Eye asymmetry legibility (gallery/wound-bloom/001.png, 003.png): both eyes must stay individually readable as eyes even when uneven. A huge bright/saturated eye (e.g. angry_red at large scale) reads aggressive/cartoonish; a soft or closed style shrunk below ~0.9 scale (e.g. closed_happy at 0.65) nearly vanishes and reads as a cyclops instead of an uneven pair. Prefer higher-contrast styles (human, human_red, dead) kept in a moderate uneven range (~0.7-1.15 scale) so asymmetry reads as anatomy, not as one-eye-missing or one-eye-shouting."
   },
   {
-    "timestamp": "2026-07-20T07:37:01.345Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/002.png: keeping an asymmetric limb the same dark base as the body with only a muted reddish tint (effective luminance ~24-26 vs body ~35) reads as a bruised/injured version of the same anatomy, not a bolted-on piece — much better than 001's saturated red limb. This is the baseline approach going forward: same base color as body, tint stays close to base hue, small luminance offset (~10-15) for contrast."
+    "lesson": "Growth/accent visibility (gallery/wound-bloom/002.png, 003.png): small growths (antennas, etc.) need luminance contrast against BOTH the body AND the dark navy background, not just the body. A dark-base tint on a growth (luminance ~20) nearly disappears into the background. Using a red base with a muted (not fully saturated) tint gives a growth luminance ~55-65 — visible as a subtle 'infection' accent without looking decorative."
   },
   {
-    "timestamp": "2026-07-20T07:37:01.347Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/002.png: a dark-tinted antenna (effective #2b0e09, luminance 20) nearly vanishes against the dark navy background — too close in luminance to read as a growth at all. Accent/growth pieces need luminance contrast against BOTH the body and the background, not just the body; keep growth tints brighter than ~luminance 40 or add a small bright accent (like a red tip) even on an otherwise muted growth."
+    "lesson": "Pose choice (gallery/wound-bloom/003.png): bent/limb-like arm poses (B/C) sell 'regrew wrong' anatomy better than decorative/hooked poses (e.g. D's big loop), which read as stylized rather than injured."
   },
   {
-    "timestamp": "2026-07-20T07:37:34.181Z",
+    "timestamp": "2026-07-20T07:48:03.496Z",
     "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/003.png: a small-scaled 'closed_happy' eye at 0.65 scale nearly disappears against the dark body — reads as a single cyclops eye instead of an uneven pair, undermining the 'eyes are never symmetric' rule since the second eye isn't legibly an eye at all. High-contrast styles (dead's white X, human's white sclera) stay legible even shrunk; closed/soft styles need to stay larger (~0.9+) or get a brighter tint to remain readable as an eye."
-  },
-  {
-    "timestamp": "2026-07-20T07:37:34.184Z",
-    "style": "wound-bloom",
-    "lesson": "gallery/wound-bloom/003.png: arm pose D (big hooked loop) reads as a stylized/toylike shape rather than an anatomical injury — for the 'regrew wrong' read, poses B/C (bent, more limb-like silhouettes) sell asymmetry-as-anatomy better than pose D's decorative curl."
-  },
-  {
-    "timestamp": "2026-07-20T07:37:59.568Z",
-    "style": "wound-bloom",
-    "lesson": "EXPERIMENT (iteration 4, gallery/wound-bloom/004.png): pushed one arm to scale 2.3 (vs the usual 0.7-1.3 range) to test extreme scale asymmetry. Result: the oversized limb dominates the whole silhouette and towers above the head, reading as a dramatic fantasy/monster-boss feature rather than a subtle anatomical wrongness — it breaks the brief's restraint principle by being immediately eye-catching instead of unsettling-on-second-look. Takeaway: cap limb scale asymmetry around ~1.3-1.5x; beyond that the 'old injury' read is replaced by a 'special power' read."
+    "lesson": "Scale asymmetry cap (EXPERIMENT, gallery/wound-bloom/004.png): limb scale differences should stay within roughly 0.7x-1.5x of each other. Pushing to 2.3x made the oversized limb dominate the whole silhouette, flipping the read from 'subtle old injury' to 'dramatic monster-boss feature' — a violation of the brief's restraint principle. Confirmed as a hard upper bound going forward."
   }
 ]
