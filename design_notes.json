@@ -136,5 +136,10 @@
     "timestamp": "2026-07-20T09:09:40.849Z",
     "style": "wound-bloom",
     "lesson": "Experimental capabilities built and working: add_scar (procedural Graphics jagged line, no sprite needed — a dark red-brown scar near an eye reads as a restrained old wound, matching the brief's anti-gore stance) and jitter_part (one-time small random dx/dy/angle nudge on an existing placed part). jitter_part is best used as a finishing touch layered on top of deliberate pose/tint/scale asymmetry, not as the primary asymmetry driver by itself (gallery/wound-bloom/009.png). Reminder: editing scene.js triggers a live-reload that wipes the current monster — always rebuild_monster after a scene.js edit before exercising experimental_command."
+  },
+  {
+    "timestamp": "2026-07-20T09:10:04.325Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/010.png: strongest baseline so far — body-F silhouette, dark+red-A tint muted limb, dead+human eye pair, growth overlapping shoulder, small scar near the dead eye, and a light leg jitter all layered together read as one coherent 'regrew wrong' creature rather than a checklist of separate tricks. This combination (not any single element) is what sells the brief; future iterations should treat 010 as the reference baseline to vary from, not just repeat."
   }
 ]
