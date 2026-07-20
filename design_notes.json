@@ -151,5 +151,10 @@
     "timestamp": "2026-07-20T09:10:56.612Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/012.png: the human_red eye style at 1.15 scale is naturally quite vivid/pink and, paired with a shrunken dead eye, can read as heterochromia-with-an-injury rather than two mismatched wounds — a fine variant on the dead+human default, but keep it as an occasional swap-in rather than a new default, since its brightness edges toward the 'decorative accent' zone the brief warns against."
+  },
+  {
+    "timestamp": "2026-07-20T09:11:28.527Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/013.png: refining the 010 baseline further — moving the scar to sit right next to the dead eye (dx30,dy18 near an eye at dx30,dy0) makes the scar and the small eye read as connected trauma (the eye looks smaller because of the wound near it) rather than two unrelated details. Placing a scar adjacent to (not on top of) a mismatched eye strengthens the 'this eye is smaller because of an old injury' narrative without any extra tooling."
   }
 ]
