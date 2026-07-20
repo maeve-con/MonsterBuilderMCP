@@ -161,5 +161,20 @@
     "timestamp": "2026-07-20T07:53:27.158Z",
     "style": "wound-bloom",
     "lesson": "EXPERIMENT (iteration 8, gallery/wound-bloom/007.png): deliberately made both eyes identical (same style/scale/symmetric dx/dy), violating the 'never symmetric' rule while keeping every other element (mismatched limbs, growth, muted palette) unchanged from 006. Result: the monster instantly reads as a normal, friendly, symmetric-faced cartoon character despite the asymmetric limbs still being present — the limb asymmetry alone isn't enough to sell 'wrongness' once the face is symmetric. Confirms eye asymmetry is the single most load-bearing rule in the brief for the unsettling read; it can't be sacrificed even when other asymmetry cues are present elsewhere on the body."
+  },
+  {
+    "timestamp": "2026-07-20T07:53:56.134Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/008.png: placing the small 'dead' eye at dy+12 (below the natural eye-line, near the mouth) makes it overlap the mouth's teeth detail — the two small light-colored shapes (eye X and teeth) blur together into one confusing cluster instead of reading as a distinct small eye near a normal mouth. Keep off-eye-line dy offsets moderate (~+/-8 max) so a shrunk eye stays visually separated from the mouth."
+  },
+  {
+    "timestamp": "2026-07-20T09:09:16.297Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/009.png: built and exercised two experimental capabilities — add_scar (procedural Graphics jagged line) and jitter_part (one-time random dx/dy/angle nudge on an existing part). The scar drawn just under the left eye (dark red-brown #5a1c14, length 55) reads convincingly as an old wound without any gore/shock — restrained and anatomical, exactly per brief. jitter_part on the dark leg (small +7/+7/+7 nudge) added a subtle 'off' quality on top of the existing pose/tint asymmetry, reinforcing the limp read without being a big visible change by itself — best used as a finishing touch on top of deliberate asymmetry, not as the asymmetry's main driver."
+  },
+  {
+    "timestamp": "2026-07-20T09:09:16.300Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/009.png: editing scene.js to add experimental commands triggers a live-reload that wipes the current monster (this.monster resets to {}) — must rebuild_monster after every scene.js edit before testing experimental_command calls, or they'll fail with 'no body exists yet' / 'no X exists' even though the previous build succeeded moments earlier."
   }
 ]

@@ -84,14 +84,71 @@ class MonsterScene extends Phaser.Scene {
             { color: '#888', fontSize: '14px' });
         this.connectToBridge();
 
-        // Example shape (agent adds entries following this pattern):
-        // add_single_arm: {
-        //     description: 'Place ONE arm on the given side only (no mirroring). ' +
-        //                  'Pose D dangles limply, good for weary characters.',
-        //     params: '{ side: "left"|"right", color, pose, tint?, scale?, dx?, dy? }',
-        //     handler: (p) => { ...; return 'what happened'; },
-        // },
-        this.experimental = {};
+        this.experimental = {
+            add_scar: {
+                description: 'Draws a procedural jagged scar/vein mark directly on the monster with Phaser Graphics ' +
+                    '(no sprite asset needed) — for old-injury detail the Kenney pack has no asset for. ' +
+                    'dx/dy position it relative to body center, angle rotates the whole mark, length/segments control ' +
+                    'how jagged the line is (more segments = more zigzag), thickness sets line width, color is a hex ' +
+                    'string for the mark (dark reds/browns read as scar tissue, brighter reds read as fresh/inflamed).',
+                params: '{ dx?, dy?, angle?, length?, segments?, thickness?, color? }',
+                handler: (p) => {
+                    if (!this.monster.body) return 'Error: no body exists yet. Call create_body first.';
+                    const dx = p.dx || 0, dy = p.dy || 0, angle = p.angle || 0;
+                    const length = p.length || 60, segments = Math.max(2, p.segments || 4);
+                    const thickness = p.thickness || 3;
+                    const color = p.color || '#4a1010';
+                    const colorInt = parseInt(color.replace('#', ''), 16);
+
+                    const g = this.add.graphics();
+                    g.lineStyle(thickness, colorInt, 1);
+                    g.beginPath();
+                    g.moveTo(0, -length / 2);
+                    for (let i = 1; i <= segments; i++) {
+                        const t = i / segments;
+                        const y = -length / 2 + length * t;
+                        const x = (Math.random() - 0.5) * (thickness * 3);
+                        g.lineTo(x, y);
+                    }
+                    g.strokePath();
+                    g.setPosition(CENTER_X + dx, CENTER_Y + dy);
+                    g.setAngle(angle);
+
+                    this.monster.scars = this.monster.scars || [];
+                    this.monster.scars.push(g);
+                    return `Drew a scar at (${dx}, ${dy}), angle ${angle}, length ${length}, ${segments} segments.`;
+                },
+            },
+            jitter_part: {
+                description: 'Nudge an already-placed part instance by a small random position/angle offset, once ' +
+                    '(not animated) — for a subtly-off, "regrew wrong" look that a hand-picked dx/dy can\'t easily fake. ' +
+                    'Targets one object by part name + index (e.g. part:"arms", index:0 for the first arm added by ' +
+                    'add_arms/build_monster — right side is usually index 0 unless mirror added a left one first). ' +
+                    'maxDx/maxDy/maxAngle bound the random nudge range (uniform, can be negative or positive).',
+                params: '{ part: "arms"|"legs"|"eyes"|"antennas"|"mouth"|"body", index?, maxDx?, maxDy?, maxAngle? }',
+                handler: (p) => {
+                    let target;
+                    if (p.part === 'mouth' || p.part === 'body') {
+                        target = this.monster[p.part];
+                    } else {
+                        target = (this.monster[p.part] || [])[p.index || 0];
+                    }
+                    if (!target) {
+                        return `Error: no ${p.part}${p.index !== undefined ? '[' + p.index + ']' : ''} exists on the current monster.`;
+                    }
+                    const maxDx = p.maxDx !== undefined ? p.maxDx : 6;
+                    const maxDy = p.maxDy !== undefined ? p.maxDy : 6;
+                    const maxAngle = p.maxAngle !== undefined ? p.maxAngle : 5;
+                    const jx = (Math.random() * 2 - 1) * maxDx;
+                    const jy = (Math.random() * 2 - 1) * maxDy;
+                    const ja = (Math.random() * 2 - 1) * maxAngle;
+                    target.x += jx;
+                    target.y += jy;
+                    target.angle = (target.angle || 0) + ja;
+                    return `Jittered ${p.part}${p.index !== undefined ? '[' + p.index + ']' : ''} by dx=${jx.toFixed(1)}, dy=${jy.toFixed(1)}, angle=${ja.toFixed(1)}.`;
+                },
+            },
+        };
     }
 
     connectToBridge() {
