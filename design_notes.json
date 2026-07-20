@@ -131,5 +131,15 @@
     "timestamp": "2026-07-20T07:37:01.347Z",
     "style": "wound-bloom",
     "lesson": "gallery/wound-bloom/002.png: a dark-tinted antenna (effective #2b0e09, luminance 20) nearly vanishes against the dark navy background — too close in luminance to read as a growth at all. Accent/growth pieces need luminance contrast against BOTH the body and the background, not just the body; keep growth tints brighter than ~luminance 40 or add a small bright accent (like a red tip) even on an otherwise muted growth."
+  },
+  {
+    "timestamp": "2026-07-20T07:37:34.181Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/003.png: a small-scaled 'closed_happy' eye at 0.65 scale nearly disappears against the dark body — reads as a single cyclops eye instead of an uneven pair, undermining the 'eyes are never symmetric' rule since the second eye isn't legibly an eye at all. High-contrast styles (dead's white X, human's white sclera) stay legible even shrunk; closed/soft styles need to stay larger (~0.9+) or get a brighter tint to remain readable as an eye."
+  },
+  {
+    "timestamp": "2026-07-20T07:37:34.184Z",
+    "style": "wound-bloom",
+    "lesson": "gallery/wound-bloom/003.png: arm pose D (big hooked loop) reads as a stylized/toylike shape rather than an anatomical injury — for the 'regrew wrong' read, poses B/C (bent, more limb-like silhouettes) sell asymmetry-as-anatomy better than pose D's decorative curl."
   }
 ]
